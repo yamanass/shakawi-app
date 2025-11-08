@@ -3,123 +3,112 @@
 body {
   margin: 0;
   font-family: 'Baloo 2', cursive;
-  background: linear-gradient(135deg, #fce4ec, #e1bee7, #fff9c4); /* Soft pastel gradient */
-  height: 100vh;
+  background: linear-gradient(135deg, #fce4ec, #e1bee7, #fff9c4);
+  min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
-  overflow: hidden;
+  align-items: flex-start;
+  padding-top: 20px;
+  overflow-x: hidden;
 }
 
-
 .app-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: 100%;
+  max-width: 650px;
+  padding: 1rem;
   text-align: center;
-  padding: 2rem;
   position: relative;
 }
 
-/* Floating shapes: hearts, flowers, stars */
-.floating-shape {
+/* ✨ Real Cute Stars ONLY ✨ */
+.star {
   position: absolute;
-  width: 50px;
-  height: 50px;
+  width: 22px;
+  height: 22px;
+  background-image: url('https://cdn-icons-png.flaticon.com/512/1828/1828884.png'); /* REAL STAR ⭐ */
   background-size: contain;
   background-repeat: no-repeat;
-  opacity: 0.8;
-  animation: floatShape 10s linear infinite;
+  opacity: 0.55;
+  pointer-events: none;
+  animation: floatSparkle 7s ease-in-out infinite;
 }
 
-.shape1 { top: 10%; left: 5%; background-image: url('https://cdn-icons-png.flaticon.com/512/616/616430.png'); animation-delay: 0s; } /* Heart */
-.shape2 { top: 20%; right: 10%; background-image: url('https://cdn-icons-png.flaticon.com/512/616/616408.png'); animation-delay: 3s; } /* Flower */
-.shape3 { bottom: 15%; left: 40%; background-image: url('https://cdn-icons-png.flaticon.com/512/616/616438.png'); animation-delay: 6s; } /* Star */
+.star1 { top: 10%; left: 10%; animation-delay: 0.2s; }
+.star2 { top: 25%; right: 12%; animation-delay: 0.8s; }
+.star3 { bottom: 20%; left: 20%; animation-delay: 1.4s; }
+.star4 { bottom: 30%; right: 18%; animation-delay: 2s; }
+.star5 { top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: 1s; }
 
-@keyframes floatShape {
-  0% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-30px) rotate(180deg); }
-  100% { transform: translateY(0) rotate(360deg); }
+@keyframes floatSparkle {
+  0% { opacity: 0.3; transform: translateY(0) scale(0.8); }
+  40% { opacity: 0.9; transform: translateY(-10px) scale(1); }
+  70% { opacity: 0.6; transform: translateY(5px) scale(1.1); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Header */
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  z-index: 10;
+.logo {
+  width: 90px;
+  animation: floatLogo 3s ease-in-out infinite;
 }
 
-.logo {
-  width: 130px;
-  height: 130px;
-  animation: float 3s ease-in-out infinite;
+@keyframes floatLogo {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .main-title {
-  font-size: 3rem;
-  color: #ff69b4;
-  text-shadow: 2px 2px #fff;
-  animation: glow 2s ease-in-out infinite alternate;
+  font-size: 2.2rem;
+  margin-top: 0.5rem;
+  color: #d81b60;
+  text-shadow: 1px 1px white;
 }
 
 /* Card */
-.card {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 2rem 3rem;
-  border-radius: 25px;
-  max-width: 500px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
-  transition: transform 0.5s ease;
-  z-index: 10;
-}
-
-.card:hover {
-  transform: translateY(-10px) scale(1.02);
+.team-card {
+  background: rgba(255, 255, 255, 0.92);
+  padding: 1.5rem 1.8rem;
+  border-radius: 20px;
+  margin-top: 1.5rem;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .greeting {
-  font-size: 2rem;
-  color: #ff1493;
-  margin-bottom: 1rem;
-  animation: bounceText 2s infinite;
+  font-size: 1.6rem;
+  color: #d81b60;
+}
+
+.role-title {
+  margin-top: 1rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ad1457;
+}
+
+.role-list {
+  margin-top: .3rem;
+  background: #ffe3ec;
+  padding: .5rem 1.2rem;
+  border-radius: 12px;
+  display: inline-block;
+  font-size: 1.1rem;
+  color: #7b1f53;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .message {
-  font-size: 1.2rem;
-  line-height: 1.5;
-  color: #333;
+  margin-top: 1.2rem;
+  font-size: 1.15rem;
+}
+
+.team-slogan {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #444;
 }
 
 footer {
-  margin-top: 2rem;
-  font-size: 0.9rem;
-  color: #555;
-  z-index: 10;
-}
-
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-}
-
-@keyframes glow {
-  0% { text-shadow: 0 0 5px #fff; }
-  100% { text-shadow: 0 0 20px #ff69b4, 0 0 30px #ff1493; }
-}
-
-@keyframes bounceText {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .main-title { font-size: 2rem; }
-  .greeting { font-size: 1.5rem; }
-  .message { font-size: 1rem; }
-  .logo { width: 90px; height: 90px; }
-  .card { padding: 1.5rem 2rem; }
+  margin-top: 1.5rem;
+  font-size: .9rem;
+  color: #666;
 }
