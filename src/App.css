@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&display=swap');
 
+* {
+  box-sizing: border-box; /* مهم جداً للـ padding والـ margin */
+}
+
 body {
   margin: 0;
   font-family: 'Baloo 2', cursive;
@@ -8,107 +12,123 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 20px;
+  padding-top: 40px;
   overflow-x: hidden;
 }
 
 .app-container {
   width: 100%;
   max-width: 650px;
-  padding: 1rem;
+  padding: 1rem 1.5rem; /* padding داخلي يعطي مسافة من الحواف */
   text-align: center;
   position: relative;
 }
 
-/* ✨ Real Cute Stars ONLY ✨ */
+/* ⭐ Floating Stars */
 .star {
   position: absolute;
-  width: 22px;
-  height: 22px;
-  background-image: url('https://cdn-icons-png.flaticon.com/512/1828/1828884.png'); /* REAL STAR ⭐ */
+  width: 20px;
+  height: 20px;
+  background-image: url('https://cdn-icons-png.flaticon.com/512/1828/1828884.png'); /* Star */
   background-size: contain;
   background-repeat: no-repeat;
-  opacity: 0.55;
+  opacity: 0.5;
   pointer-events: none;
-  animation: floatSparkle 7s ease-in-out infinite;
+  animation: floatStar 6s ease-in-out infinite;
 }
 
-.star1 { top: 10%; left: 10%; animation-delay: 0.2s; }
-.star2 { top: 25%; right: 12%; animation-delay: 0.8s; }
-.star3 { bottom: 20%; left: 20%; animation-delay: 1.4s; }
-.star4 { bottom: 30%; right: 18%; animation-delay: 2s; }
-.star5 { top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: 1s; }
+.star1 { top: 5%; left: 8%; }
+.star2 { top: 20%; right: 10%; }
+.star3 { bottom: 15%; left: 12%; }
+.star4 { bottom: 25%; right: 18%; }
+.star5 { top: 50%; left: 50%; transform: translateX(-50%); }
 
-@keyframes floatSparkle {
-  0% { opacity: 0.3; transform: translateY(0) scale(0.8); }
-  40% { opacity: 0.9; transform: translateY(-10px) scale(1); }
-  70% { opacity: 0.6; transform: translateY(5px) scale(1.1); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes floatStar {
+  0% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(-10px); }
+  100% { opacity: 0.4; transform: translateY(0); }
 }
 
 /* Header */
 .logo {
-  width: 90px;
+  width: 85px;
   animation: floatLogo 3s ease-in-out infinite;
+  margin: 0 auto;
 }
 
 @keyframes floatLogo {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 .main-title {
-  font-size: 2.2rem;
-  margin-top: 0.5rem;
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
+  margin-top: 0.7rem;
   color: #d81b60;
   text-shadow: 1px 1px white;
 }
 
 /* Card */
 .team-card {
-  background: rgba(255, 255, 255, 0.92);
-  padding: 1.5rem 1.8rem;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem 1.5rem; /* padding داخلي */
   border-radius: 20px;
-  margin-top: 1.5rem;
+  margin: 2rem auto;  /* مسافة من الأعلى والأسفل */
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .greeting {
-  font-size: 1.6rem;
+  font-size: clamp(1.3rem, 3.5vw, 1.6rem);
   color: #d81b60;
+  margin-bottom: 1rem;
+}
+
+.roles-box {
+  width: 100%;
 }
 
 .role-title {
-  margin-top: 1rem;
-  font-size: 1.3rem;
+  font-size: clamp(1rem, 3vw, 1.25rem);
   font-weight: 700;
   color: #ad1457;
+  margin-top: 1rem;
 }
 
 .role-list {
-  margin-top: .3rem;
+  margin-top: 0.4rem;
   background: #ffe3ec;
-  padding: .5rem 1.2rem;
+  padding: 0.5rem 1.2rem;
   border-radius: 12px;
   display: inline-block;
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
   color: #7b1f53;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .message {
   margin-top: 1.2rem;
-  font-size: 1.15rem;
+  font-size: clamp(1rem, 3vw, 1.15rem);
 }
 
 .team-slogan {
   margin-top: 1rem;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
   color: #444;
 }
 
 footer {
   margin-top: 1.5rem;
-  font-size: .9rem;
+  font-size: 0.85rem;
   color: #666;
+}
+
+/* ✅ Responsive adjustments */
+@media (max-width: 500px) {
+  .app-container { padding: 1rem 1rem; }
+  .logo { width: 70px; }
+  .team-card { padding: 1.5rem 1.2rem; }
 }

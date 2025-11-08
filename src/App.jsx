@@ -36,11 +36,13 @@ function App() {
         </h2>
 
         <p className="team-slogan">
-          — United as one powerful team — 
+          — United as one powerful team —
         </p>
       </div>
 
-     
+      <footer>
+        <p>Made by Yaman to her nice team </p>
+      </footer>
     </div>
   );
 }
