@@ -3,13 +3,14 @@
 body {
   margin: 0;
   font-family: 'Baloo 2', cursive;
-  background: linear-gradient(135deg, #fcd3f8, #a18cd1); /* Original gradient */
+  background: linear-gradient(135deg, #fce4ec, #e1bee7, #fff9c4); /* Soft pastel gradient */
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
 }
+
 
 .app-container {
   display: flex;
