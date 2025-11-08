@@ -18,14 +18,14 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
+        {/* <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
-        </button>
+        </button> */}
         {/* <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p> */}
         <h1>Hello 👋</h1>
-        <h2>Yaman w Nagham will break the world with react js 🔥</h2>
+        <h2>يمان و نغم رح يكسروا الدنيا بالريآكت جايينكو يا شوية مطورين 😎🤣🔥</h2>
       </div>
       {/* <p className="read-the-docs">
         Click on the Vite and React logos to learn more
