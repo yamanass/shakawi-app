@@ -1,42 +1,124 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Baloo 2', cursive;
+  background: linear-gradient(135deg, #fcd3f8, #a18cd1); /* Original gradient */
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  padding: 2rem;
+  position: relative;
+}
+
+/* Floating shapes: hearts, flowers, stars */
+.floating-shape {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  animation: floatShape 10s linear infinite;
+}
+
+.shape1 { top: 10%; left: 5%; background-image: url('https://cdn-icons-png.flaticon.com/512/616/616430.png'); animation-delay: 0s; } /* Heart */
+.shape2 { top: 20%; right: 10%; background-image: url('https://cdn-icons-png.flaticon.com/512/616/616408.png'); animation-delay: 3s; } /* Flower */
+.shape3 { bottom: 15%; left: 40%; background-image: url('https://cdn-icons-png.flaticon.com/512/616/616438.png'); animation-delay: 6s; } /* Star */
+
+@keyframes floatShape {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(180deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+
+/* Header */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  z-index: 10;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  width: 130px;
+  height: 130px;
+  animation: float 3s ease-in-out infinite;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.main-title {
+  font-size: 3rem;
+  color: #ff69b4;
+  text-shadow: 2px 2px #fff;
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
+/* Card */
 .card {
-  padding: 2em;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem 3rem;
+  border-radius: 25px;
+  max-width: 500px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  transition: transform 0.5s ease;
+  z-index: 10;
 }
 
-.read-the-docs {
-  color: #888;
+.card:hover {
+  transform: translateY(-10px) scale(1.02);
+}
+
+.greeting {
+  font-size: 2rem;
+  color: #ff1493;
+  margin-bottom: 1rem;
+  animation: bounceText 2s infinite;
+}
+
+.message {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+footer {
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: #555;
+  z-index: 10;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes glow {
+  0% { text-shadow: 0 0 5px #fff; }
+  100% { text-shadow: 0 0 20px #ff69b4, 0 0 30px #ff1493; }
+}
+
+@keyframes bounceText {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .main-title { font-size: 2rem; }
+  .greeting { font-size: 1.5rem; }
+  .message { font-size: 1rem; }
+  .logo { width: 90px; height: 90px; }
+  .card { padding: 1.5rem 2rem; }
 }
