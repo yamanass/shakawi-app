@@ -1,0 +1,94 @@
+:root{
+  --card-bg: #ffffff;
+  --card-radius: 14px;
+  --card-padding: 0;
+}
+
+/* الكارد الخارجي */
+.app-card {
+  width: 900px;
+  max-width: calc(100% - 40px);
+  height: 520px;
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.07);
+  /* ملاحظة: لا نضع display:flex هنا لأننا نريد تحكماً واضحاً داخل .app-card-inner
+     لكن وضعه لن يضر أيضاً — تركته محايداً هنا */
+}
+
+/* inner: يحتضن الهيدر + الجسم */
+.app-card-inner{
+  display: flex;
+  flex-direction: column; /* header فوق، body يأخذ الباقي */
+  height: 100%;
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
+  background: var(--card-bg);
+}
+
+/* body: هذا الذي يجب أن يكون row (يحتوي اليسار/اليمين) */
+.app-card-body{
+  display: flex;          /* <-- الأهم: يجعل children (left/right) جنب بعض */
+  flex-direction: row;
+  flex: 1 1 auto;         /* ياخذ كل المساحة المتبقية داخل الكارد */
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* لو عندك header استخدم هذه */
+.app-card-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  background: transparent;
+}
+
+/* LEFT SIDE */
+.left-side {
+  flex: 0 0 45%;          /* قاعدة ثابتة: لا ينمو أكثر من 45% */
+  max-width: 45%;
+  background: #e7f5ec;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+/* الصورة */
+.left-side .illustration {
+  width: 80%;
+  max-width: 320px;
+  height: auto;
+  display: block;
+}
+
+/* RIGHT SIDE */
+.right-side {
+  flex: 1 1 55%;          /* يأخذ الباقي (تقريباً 55%) */
+  min-width: 300px;       /* يمنع تكسير التخطيط جداً في الشاشات المتوسطة */
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  box-sizing: border-box;
+}
+
+/* تنسيقات عامة للحقل والزر (يمكن إبقاؤها هنا أو في App.css) */
+.input-field-label { font-size: 14px; margin-bottom: 6px; }
+.input-field-input { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; }
+.login-button { width: 100%; padding: 12px; border-radius: 8px; background-color: #143a2d; color: white; border: none; cursor: pointer; font-size: 15px; transition: 0.2s; }
+.login-button:hover { background-color: #0f2e22; }
+
+/* responsive */
+@media (max-width: 880px) {
+  .app-card { width: calc(100% - 32px); height: auto; }
+  .app-card-inner { flex-direction: column; }
+  .app-card-body { flex-direction: column; }
+  .left-side, .right-side { width: 100%; max-width: 100%; padding: 24px; min-width: 0; }
+  .left-side .illustration { width: 60%; }
+}

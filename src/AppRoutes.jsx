@@ -1,7 +1,7 @@
 // src/AppRoutes.jsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from './view/auth/Login'; // رابط صحيح حسب مسارك
+import Login from './view/auth/Login.jsx'; // رابط صحيح حسب مسارك
 
 const AppRoutes = () => {
   return (

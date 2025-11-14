@@ -1,5 +1,5 @@
-// src/components/InputField.jsx
 import React from 'react';
+import './InputField.css'; // هذا الاستيراد ضروري
 
 const InputField = ({
   label,

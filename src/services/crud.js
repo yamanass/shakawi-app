@@ -1,8 +1,8 @@
+// src/services/Crud.js
 import axios from 'axios';
 export default class Crud {
   constructor(options = {}) {
-    // options: { baseURL, storageService }
-    this.baseURL = options.baseURL || ''; // يمكن ضبط baseURL عند الإنشاء
+    this.baseURL = options.baseURL || '';
     this.storage = options.storageService || {
       getToken: () => localStorage.getItem('token'),
       getLang: () => localStorage.getItem('lang') || 'en',
@@ -15,21 +15,46 @@ export default class Crud {
   _initClient() {
     this.client = axios.create({
       baseURL: this.baseURL,
-      // لا نحدد Content-Type هنا لأن بعض الطلبات (multipart) تحتاجه تلقائياً من axios
       timeout: 30000,
     });
 
-    // مختصر: interceptor طباعة الطلبات والأخطاء كما في الدارت
+    // Request interceptor — نطبع الطلبات
     this.client.interceptors.request.use((config) => {
-      // console.log('[Crud] Request:', config.method, config.url, config.data);
+      // طباعة للتتبّع
+      console.log('[Crud] Request ->', {
+        method: config.method,
+        url: config.url,
+        headers: config.headers,
+        data: config.data,
+      });
       return config;
+    }, (error) => {
+      console.error('[Crud] Request error ->', error);
+      return Promise.reject(error);
     });
 
+    // Response interceptor — نطبع الاستجابات والأخطاء
     this.client.interceptors.response.use(
-      (res) => res,
+      (res) => {
+        console.log('[Crud] Response <-', {
+          url: res.config?.url,
+          status: res.status,
+          data: res.data,
+        });
+        return res;
+      },
       (error) => {
-        // يمكنك تسجيل الأخطاء هنا
-        // console.error('[Crud] Response error', error);
+        // إذا في response من السيرفر نطبعها مفصلاً
+        if (error.response) {
+          console.error('[Crud] Response error <-', {
+            url: error.response.config?.url,
+            status: error.response.status,
+            data: error.response.data,
+            headers: error.response.headers,
+          });
+        } else {
+          console.error('[Crud] Network / Axios error <-', error.message, error);
+        }
         return Promise.reject(error);
       }
     );
@@ -44,70 +69,66 @@ export default class Crud {
 
     const token = this.storage.getToken ? this.storage.getToken() : null;
     if (token) this.headers.Authorization = `Bearer ${token}`;
+    else delete this.headers.Authorization;
   }
 
-  // استدعاء لتحديث التوكن في الهيدرز (مثل Token() عندك في Dart)
+  // refreshToken: يبقي الهيدرز مبّعلّمة بأحدث توكن
   refreshToken() {
     const token = this.storage.getToken ? this.storage.getToken() : null;
     if (token) this.headers.Authorization = `Bearer ${token}`;
     else delete this.headers.Authorization;
   }
 
-  // GET basic (returns { success, status, data, raw })
   async getData(url) {
     try {
       this._initHeaders();
       const res = await this.client.get(url, { headers: this.headers });
-      // مشابه للطريقة في دارت: تحقق status
       if (res.status === 200 || res.status === 201) {
         return { success: true, status: res.status, data: res.data, raw: res };
       }
       return { success: false, status: res.status, raw: res };
     } catch (e) {
-      // console.error('[Crud.getData] ', e);
       return { success: false, error: e };
     }
   }
 
-  // GET image or binary
-  async getImageWithToken(url) {
-    try {
-      this.refreshToken();
-      const res = await this.client.get(url, {
-        headers: this.headers,
-        responseType: 'blob',
-      });
-      if (res.status === 200) {
-        return { success: true, blob: res.data, raw: res };
-      }
-      return { success: false, status: res.status, raw: res };
-    } catch (e) {
-      return { success: false, error: e };
-    }
-  }
-
-  // POST JSON without default headers (simple)
+  // ======= هنا أصلحت: استدعاء _initHeaders() قبل الإرسال + طباعة =======
   async postData(url, data) {
     try {
+      // تحديث الهيدرز بحيث يلتقط أحدث توكن من localStorage
+      this._initHeaders();
+
+      console.log('[Crud] postData called', { url, data, headers: this.headers });
+
       const res = await this.client.post(url, data, {
         headers: { 'Content-Type': 'application/json', ...this.headers },
       });
+
       if ([200, 201, 422].includes(res.status)) {
         return { success: true, status: res.status, data: res.data, raw: res };
       }
       return { success: false, status: res.status, raw: res };
     } catch (e) {
-      return { success: false, error: e };
+      // طباعة الخطأ بالتفصيل
+      if (e.response) {
+        console.error('[Crud.postData] Error response:', {
+          url,
+          status: e.response.status,
+          data: e.response.data,
+        });
+        return { success: false, error: e, status: e.response.status, data: e.response.data };
+      } else {
+        console.error('[Crud.postData] Network/Error:', e.message, e);
+        return { success: false, error: e };
+      }
     }
   }
 
-  // POST with prepared headers and logging (like postDataWithHeaders)
   async postDataWithHeaders(url, data) {
     try {
       this._initHeaders();
       const reqHeaders = { 'Content-Type': 'application/json', ...this.headers };
-      // debug logs
-      // console.log('[Crud] POST', url, reqHeaders, data);
+      console.log('[Crud] postDataWithHeaders', { url, data, headers: reqHeaders });
       const res = await this.client.post(url, data, { headers: reqHeaders });
       if ([200, 201, 422].includes(res.status)) {
         return { success: true, status: res.status, data: res.data, raw: res };
@@ -117,6 +138,11 @@ export default class Crud {
         return { success: false, status: res.status, raw: res };
       }
     } catch (e) {
+      if (e.response) {
+        console.error('[Crud.postDataWithHeaders] Error response:', e.response.status, e.response.data);
+        return { success: false, error: e, status: e.response.status, data: e.response.data };
+      }
+      console.error('[Crud.postDataWithHeaders] Network/Error:', e.message, e);
       return { success: false, error: e };
     }
   }

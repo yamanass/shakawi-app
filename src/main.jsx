@@ -1,14 +1,11 @@
-// src/App.jsx
+// src/main.jsx
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import AppRoutes from './AppRoutes';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css'; // أو ./App.css حسب مشروعك
 
-function App() {
-  return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
-  );
-}
-
-export default App;
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

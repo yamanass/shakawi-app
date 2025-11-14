@@ -1,0 +1,9 @@
+/* src/components/common/AppButton.css */
+.app-button {
+  border: none;
+  transition: 0.2s;
+}
+
+.app-button:hover {
+  filter: brightness(0.9);
+}
