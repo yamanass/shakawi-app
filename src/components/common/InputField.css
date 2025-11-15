@@ -1,15 +1,33 @@
+/* existing rules kept... */
+
 .input-field-container {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
 }
 
-.input-field-label {
-  font-weight: 500;
-  margin-bottom: 6px;
-  color: #333;
-  font-size: 14px;
+.input-field-container.has-error .input-field-label {
+  color: crimson;
 }
+/* error styles (make sure these are at the end of InputField.css) */
+.input-field-container.has-error .input-field-label {
+  color: crimson;
+}
+
+.input-field-container.has-error .input-field-input,
+.input-field-input[aria-invalid="true"] {
+  border-color: crimson !important;
+  box-shadow: 0 0 0 4px rgba(255,0,0,0.06) !important;
+}
+
+.input-field-error {
+  display: block;
+  color: crimson;
+  font-size: 13px;
+  margin-top: 6px;
+  line-height: 1.2;
+}
+
 
 .input-field-input {
   padding: 10px 12px;
@@ -17,15 +35,19 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   outline: none;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.15s ease-in-out;
 }
 
-.input-field-input:focus {
-  border-color: #4f46e5; /* لون التركيز - أزرق بنفسجي */
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+.input-field-container.has-error .input-field-input,
+.input-field-input[aria-invalid="true"] {
+  border-color: crimson !important;
+  box-shadow: 0 0 0 4px rgba(255,0,0,0.06);
 }
 
-.input-field-input::placeholder {
-  color: #999;
-  font-style: italic;
+/* رسالة الخطأ تحت الحقل */
+.input-field-error {
+  color: crimson;
+  font-size: 13px;
+  margin-top: 6px;
+  line-height: 1.2;
 }
