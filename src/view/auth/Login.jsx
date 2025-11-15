@@ -1,43 +1,22 @@
 // src/view/auth/Login.jsx
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import InputField from "../../components/common/InputField.jsx";
 import AppButton from "../../components/common/AppButton.jsx";
 import Card from "../../components/common/Card.jsx";
-import '../../App.css';
-import illustration from '../../assets/bb.png';
-// src/view/auth/Login.jsx
-import loginAPI from '../../data/logindata.jsx';
-import ServerError from '../../utils/ServerError.js';
-   // <-- default import (NOT { ServerError })
-import { validInput } from '../../utils/validation.js';
+import "../../App.css";
+import illustration from "../../assets/bb.png";
+import loginAPI from "../../data/logindata.jsx";
+import ServerError from "../../utils/ServerError.js";
+import { validInput } from "../../utils/validation.js";
 
-import DropdownSelect from '../../components/common/DropdownSelect.jsx';
 const Login = () => {
   const VALIDATE = true;
-const [selectedPermission, setSelectedPermission] = useState("");
-const permissionOptions = [
-  "ministry.create",
-  "ministry.read",
-  "ministry.update",
-  "ministry.delete",
-  "branch.create",
-  "branch.read",
-  "branch.update",
-  "branch.delete",
-  "employee.create",
-  "employee.read",
-  "employee.update",
-  "employee.delete",
-];
+  const navigate = useNavigate();
 
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
-
-  const [errors, setErrors] = useState({
-    login: null,
-    password: null,
-  });
-
+  const [errors, setErrors] = useState({ login: null, password: null });
   const [loading, setLoading] = useState(false);
 
   const prettyLog = (tag, obj) =>
@@ -45,16 +24,11 @@ const permissionOptions = [
 
   const validateField = (field, value) => {
     if (!VALIDATE) return null;
-    if (field === "login") {
-      return validInput(value, 5, 100, "emailOrPhone");
-    }
-    if (field === "password") {
-      return validInput(value, 6, 40, "password");
-    }
+    if (field === "login") return validInput(value, 5, 100, "emailOrPhone");
+    if (field === "password") return validInput(value, 6, 40, "password");
     return null;
   };
 
-  // live handlers
   const onLoginChange = (e) => {
     const v = e.target.value;
     setLoginValue(v);
@@ -71,11 +45,8 @@ const permissionOptions = [
     prettyLog("onPasswordChange", { value: v, error: err });
   };
 
-  // compute form validity (used to disable button)
   const isFormValid = useMemo(() => {
-    if (!VALIDATE) {
-      return loginValue.trim().length > 0 && password.trim().length > 0;
-    }
+    if (!VALIDATE) return loginValue.trim().length > 0 && password.trim().length > 0;
     return (
       !errors.login &&
       !errors.password &&
@@ -105,34 +76,27 @@ const permissionOptions = [
   };
 
   const handleLogin = async () => {
-    prettyLog("UI.submit", { loginValue, password, errors });
-
-    if (!validateForm()) {
-      prettyLog("UI.validation.failed", { loginValue, password, errors });
-      return;
-    }
-
-    if (!isFormValid) {
-      console.warn("Form not valid - stopping submit", { errors, loginValue, password });
-      return;
-    }
+    if (!validateForm() || !isFormValid) return;
 
     setLoading(true);
     try {
       const result = await loginAPI.login(loginValue, password);
       prettyLog("UI.login.success", result);
-      alert("Login successful");
+
+      const role = result?.user?.role;
+
+      if (role === "citizen") {
+        navigate("/home", { replace: true }); // التوجيه مباشرة للـ Home
+      } else {
+        alert("الرول غير مدعوم حالياً.");
+      }
     } catch (e) {
       console.error("[UI.login.error]", e);
-      if (e instanceof ServerError) {
-        alert(e.message || "Server error");
-      } else {
-        const msg =
-          e?.response?.data?.message ||
-          e?.message ||
-          "An unexpected error occurred";
-        alert(msg);
-      }
+      const msg =
+        e instanceof ServerError
+          ? e.message
+          : e?.response?.data?.message || e?.message || "حدث خطأ أثناء تسجيل الدخول";
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -144,7 +108,6 @@ const permissionOptions = [
         <div className="left-side">
           <img src={illustration} className="illustration" alt="" />
         </div>
-
         <div className="right-side">
           <div className="app-title">Complaint Platform</div>
 
@@ -157,15 +120,7 @@ const permissionOptions = [
             error={errors.login}
             required={true}
           />
-<DropdownSelect
-  label="Role"
-  options={permissionOptions}
-  value={selectedPermission}
-  onChange={(val) => setSelectedPermission(val)}
-  placeholder="Select a permission..."
-  maxWidth="300px"        // <-- تحدد هنا أقصى عرض
-  className="dropdown-compact" // <-- أو تضيف كلاس compact
-/>
+
           <InputField
             label="Password"
             type="password"
