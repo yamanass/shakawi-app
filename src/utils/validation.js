@@ -67,5 +67,5 @@ export function validInput(val = '', min = 1, max = 255, type = '') {
     }
   }
 
-  return null; // valid
+  return null; 
 }

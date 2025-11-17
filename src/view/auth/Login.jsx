@@ -85,17 +85,18 @@ const Login = () => {
 
       const role = result?.user?.role;
 
-      if (role === "citizen") {
-        navigate("/home", { replace: true }); // التوجيه مباشرة للـ Home
-      } else {
-        alert("الرول غير مدعوم حالياً.");
-      }
+      if (["citizen", "admin", "secretary", "center admin", "ministry"].includes(role)) {
+    navigate("/home", { replace: true });
+} else {
+    alert(`Unsupported role: ${role}`);
+}
+
     } catch (e) {
       console.error("[UI.login.error]", e);
       const msg =
         e instanceof ServerError
           ? e.message
-          : e?.response?.data?.message || e?.message || "حدث خطأ أثناء تسجيل الدخول";
+          : e?.response?.data?.message || e?.message || "An error occurred while logging in    ";
       alert(msg);
     } finally {
       setLoading(false);

@@ -33,7 +33,7 @@ export default class Crud {
     try {
       const res = await this.client.post(url, data, {
         headers,
-        validateStatus: () => true, // نريد رؤية كل الاستجابات (حتى 4xx/5xx)
+        validateStatus: () => true, 
       });
 
       console.log('[Crud.post] response status:', res.status);
@@ -50,4 +50,33 @@ export default class Crud {
       return { success: false, error: err };
     }
   }
+   // === NEW: get method ===
+  async get(url, params = {}) {
+    const headers = this._getHeaders();
+    console.log('[Crud.get] url:', url);
+    console.log('[Crud.get] headers:', headers);
+    console.log('[Crud.get] params:', params);
+
+    try {
+      const res = await this.client.get(url, {
+        headers,
+        params,
+        validateStatus: () => true,
+      });
+
+      console.log('[Crud.get] response status:', res.status);
+      console.log('[Crud.get] response data:', res.data);
+
+      return {
+        success: [200, 201, 422].includes(res.status),
+        status: res.status,
+        data: res.data,
+        raw: res,
+      };
+    } catch (err) {
+      console.error('[Crud.get] network/error:', err);
+      return { success: false, error: err };
+    }
+  }
+
 }

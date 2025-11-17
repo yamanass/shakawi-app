@@ -6,6 +6,9 @@ const API = {
     LOGIN: `${BASE}/api/login`,
     LOGOUT: `${BASE}/api/logout`,
   },
+    MINISTRY: {
+    GET_MINISTRIES: `${BASE}/api/ministry/get-ministries`,
+  },
 };
 
 export default API;
