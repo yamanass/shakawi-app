@@ -1,18 +1,22 @@
 // src/view/auth/Login.jsx
-import React, { useState, useMemo } from "react";
+import React, { Suspense,useState, useMemo } from "react";
+
 import { useNavigate } from "react-router-dom";
 import InputField from "../../components/common/InputField.jsx";
 import AppButton from "../../components/common/AppButton.jsx";
 import Card from "../../components/common/Card.jsx";
 import "../../App.css";
+
 import illustration from "../../assets/bb.png";
 import loginAPI from "../../data/logindata.jsx";
 import ServerError from "../../utils/ServerError.js";
 import { validInput } from "../../utils/validation.js";
+//import { useTranslation } from 'react-i18next';
 
 const Login = () => {
   const VALIDATE = true;
   const navigate = useNavigate();
+ //const { t, i18n } = useTranslation();
 
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
