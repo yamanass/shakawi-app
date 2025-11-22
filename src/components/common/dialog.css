@@ -1,0 +1,146 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;       /* يجعل المربع في منتصف الشاشة عموديًا */
+  justify-content: center;   /* يجعل المربع في المنتصف أفقيًا */
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  padding: 200px;             /* مساحة من كل الجهات للشاشات الصغيرة */
+  box-sizing: border-box;
+}
+
+.dialog-box {
+  max-height: 50vh;          /* لا يتجاوز ارتفاع الشاشة */
+  width: 600px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  animation: fadeIn 0.25s ease;
+  overflow-y: auto;          /* يسمح بالتمرير إذا كان المحتوى كبير */
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dialog-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #475569;
+  transition: 0.2s;
+}
+
+.dialog-close:hover {
+  color: #0ea5e9;
+}
+
+.dialog-content {
+  margin-top: 10px;
+}
+
+.inline {
+  position: relative;
+  background: none;
+  backdrop-filter: none;
+  display: block;
+  padding: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Form styling */
+.ministry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.form-field input,
+.form-field select {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 2px rgba(14,165,233,0.2);
+}
+
+/* Buttons */
+.dialog-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dialog-buttons button {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submit-btn {
+  background-color: #0ea5e9;
+  color: white;
+}
+
+.submit-btn:hover {
+  background-color: #0284c7;
+}
+
+.cancel-btn {
+  background-color: #e5e7eb;
+  color: #0f172a;
+}
+
+.cancel-btn:hover {
+  background-color: #d1d5db;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .dialog-box {
+    width: 100%;
+    padding: 20px;
+  }
+}

@@ -1,0 +1,75 @@
+:root {
+  --topbar-height: 60px;
+}
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width, 220px); /* layout.css يحدد هذا المتغير */
+  right: 0;
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-bottom: 1px solid #e6edf3;
+  z-index: 900;
+}
+
+/* container areas */
+.topbar-left,
+.topbar-center,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* center title */
+.topbar-center { flex: 1; justify-content: center; }
+.topbar-center .app-title { margin: 0; font-weight: 600; color: #1f2937; }
+
+/* right area buttons */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #1f2937;
+  transition: background .12s ease, color .12s ease;
+}
+
+.icon-btn .label { display: none; } /* hide text on small screens */
+
+.icon-btn:hover {
+  background: rgba(2,6,23,0.06);
+}
+
+/* style language & logout to stand out */
+.lang-btn {
+  background: #e8f4ff;
+  color: #0369a1;
+}
+.logout-btn {
+  background: transparent;
+  color: #0369a1;
+}
+
+/* responsiveness: show labels on wide screens */
+@media (min-width: 900px) {
+  .icon-btn .label { display: inline-block; font-size: 13px; }
+}
+
+/* RTL adjustments: switch left/right positions */
+:root[dir="rtl"] .topbar {
+  left: 0;
+  right: var(--sidebar-width, 220px);
+}
+

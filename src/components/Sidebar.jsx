@@ -1,48 +1,32 @@
-import React, { useState } from "react";
-import {
-  FaHome,
-  FaUsers,
-  FaBuilding,
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
+// src/components/Sidebar.jsx
+import React from "react";
+import { FaHome, FaUsers, FaBuilding, FaChartPie } from "react-icons/fa";
+import { NavLink } from "react-router-dom";
 import "./sidebar.css";
-
+import { useTranslation } from 'react-i18next';
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const { t } = useTranslation();
+
+  const menuItems = [
+    { icon: <FaHome />, label: t("Dashboard"), to: "/home" },
+    { icon: <FaBuilding />, label: t("Ministries"), to: "/ministries" },
+    { icon: <FaUsers />, label: t("Employees"), to: "/employees" },
+    { icon: <FaChartPie />, label: t("Complaints"), to: "/complaints" },
+  ];
 
   return (
-    <div className={collapsed ? "sidebar collapsed" : "sidebar"}>
-      {/* Header */}
-      <div className="sidebar-header">
-        <h2>{!collapsed && "Dashboard"}</h2>
-        <button className="collapse-btn" onClick={() => setCollapsed(!collapsed)}>
-          {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
-        </button>
-      </div>
-
-      {/* Menu */}
+    <div className="sidebar">
       <div className="sidebar-menu">
-        <a href="#" className="menu-item">
-          <FaHome />
-          {!collapsed && <span>Home</span>}
-        </a>
-
-        <a href="#" className="menu-item">
-          <FaUsers />
-          {!collapsed && <span>Users</span>}
-        </a>
-
-        <a href="#" className="menu-item">
-          <FaBuilding />
-          {!collapsed && <span>Ministries</span>}
-        </a>
+        {menuItems.map((item, index) => (
+          <NavLink key={index} to={item.to} end className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}>
+            {item.icon} <span>{item.label}</span>
+          </NavLink>
+        ))}
       </div>
 
-      {/* Footer */}
       <div className="sidebar-footer">
-        {!collapsed && <small>© 2025 Admin Panel</small>}
+        <small>© 2025 Admin Panel</small>
       </div>
     </div>
   );

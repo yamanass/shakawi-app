@@ -1,0 +1,164 @@
+/* Grid */
+.ministries-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 28px;
+  padding: 12px 0;
+}
+
+
+/* Card */
+.ministry-card {
+  background: rgba(255, 255, 255, 0.9); /* زيادة السطوع قليلاً */
+  backdrop-filter: blur(12px);          /* زيادة البلور لإحساس الحداثة */
+  border: 1px solid rgba(200, 200, 200, 0.4); /* خط أخف */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);   /* ظل أعمق وأقل حدة */
+  border-radius: 20px;                  /* زاوية أكثر نعومة */
+  padding: 28px 24px;                    /* مساحة داخلية أكبر */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+
+.ministry-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.15);
+}
+
+
+.ministry-card h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a; /* لون داكن أكثر أناقة */
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.abbreviation {
+  background: #10b98120;  /* لون أخضر فاتح شبه شفاف */
+  color: #059669;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 12px;
+  margin: 0 auto;
+  font-size: 15px;
+}
+
+
+/* Description */
+.description {
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.6;
+  text-align: justify;
+  text-align-last: center;
+  min-height: 60px;
+  padding: 0 6px;
+}
+
+
+/* Branches Count Badge */
+.branches-count {
+  background: #0ea5e930; /* أزرق فاتح شفاف */
+  color: #0ea5e9;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 14px;
+  margin-top: auto;
+}
+
+.buttons-container {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.add-btn {
+  padding: 10px 20px;
+  background-color: #0ea5e9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-btn:hover {
+  background-color: #0284c7;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form input,
+.form textarea,
+.form select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px #0ea5e933;
+}
+
+.submit-btn {
+  padding: 10px;
+  background: #0ea5e9;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.2s;
+}
+
+.submit-btn:hover {
+  background: #0284c7;
+}
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.submit-btn {
+  padding: 8px 18px;
+  background-color: #0ea5e9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #0284c7;
+}
+
+.cancel-btn {
+  padding: 8px 18px;
+  background-color: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background-color: #e5e7eb;
+}

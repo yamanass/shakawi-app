@@ -1,7 +1,7 @@
 // src/view/auth/Login.jsx
-import React, { Suspense,useState, useMemo } from "react";
-
+import React, { Suspense, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import InputField from "../../components/common/InputField.jsx";
 import AppButton from "../../components/common/AppButton.jsx";
 import Card from "../../components/common/Card.jsx";
@@ -17,7 +17,7 @@ const Login = () => {
   const VALIDATE = true;
   const navigate = useNavigate();
  //const { t, i18n } = useTranslation();
-
+ const { t } = useTranslation();
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ login: null, password: null });
@@ -117,17 +117,17 @@ const Login = () => {
           <div className="app-title">Complaint Platform</div>
 
           <InputField
-            label="Email or Phone"
+            label={t('emailOrPhone')}
             type="text"
             value={loginValue}
             onChange={onLoginChange}
-            placeholder="Enter email or phone"
+            placeholder={t('emailOrPhone')}
             error={errors.login}
             required={true}
           />
 
           <InputField
-            label="Password"
+            label={t('password')}
             type="password"
             value={password}
             onChange={onPasswordChange}

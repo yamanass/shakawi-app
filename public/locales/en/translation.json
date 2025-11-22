@@ -1,0 +1,14 @@
+{
+  "appTitle": "Complaint Platform",
+  "emailOrPhone": "Email or Phone",
+  "password": "Password",
+  "login": "Log in",
+  "loggingIn": "Logging in...",
+  "pleaseFillMinistry": "Please fill ministry name and abbreviation",
+  "home": "Home",
+  "currentRole": "Current role",
+  "ministryName": "Ministry name",
+  "abbreviation": "Abbreviation",
+  "description": "Description (optional)",
+  "active": "Active"
+}

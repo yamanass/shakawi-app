@@ -1,0 +1,16 @@
+{
+  "appTitle": "منصة الشكاوى",
+  "emailOrPhone": "البريد أو الجوال",
+  "password": "كلمة المرور",
+  "login": "تسجيل الدخول",
+  "loggingIn": "جاري تسجيل الدخول...",
+  "pleaseFillMinistry": "الرجاء ملء اسم الوزارة والاختصار",
+  "home": "الرئيسية",
+  "currentRole": "الدور الحالي",
+  "ministryName": "اسم الوزارة",
+  "abbreviation": "الاختصار",
+  "description": "الوصف (اختياري)",
+  "active": "نشط",
+  "Dashboard":"لوحة التحكم"
+  
+}

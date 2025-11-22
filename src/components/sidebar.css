@@ -1,65 +1,78 @@
+/* sidebar.css */
 .sidebar {
-  width: 240px;
-  background: #1e293b;
+  width: 220px;
+  background-color: #fdfdfd;
   height: 100vh;
-  color: #fff;
-  padding: 15px;
+  padding: 20px 15px;
   box-sizing: border-box;
   position: fixed;
-  left: 0;
   top: 0;
-  transition: 0.3s;
+  left: 0; /* default LTR */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  border-right: 1px solid #d1d5db;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+  z-index: 1000;
 }
 
-.sidebar.collapsed {
-  width: 70px;
+/* when document dir=rtl: move sidebar to right and flip borders/shadow */
+[dir="rtl"] .sidebar {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid #d1d5db;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.05);
 }
 
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sidebar-header h2 {
-  font-size: 20px;
-  margin: 0;
-}
-
-.collapse-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-}
-
+/* menu inside sidebar */
 .sidebar-menu {
-  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  margin-top: 100px;
 }
 
+/* items */
 .menu-item {
-  color: #e2e8f0;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #374151;
+  font-weight: 500;
   text-decoration: none;
-  transition: 0.2s;
+  transition: all 0.2s ease;
 }
 
 .menu-item:hover {
-  background: #334155;
+  background-color: #e0f7ff;
+  color: #0369a1;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
+.menu-item.active {
+  background-color: #0ea5e9;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.menu-item svg {
+  min-width: 22px;
+  min-height: 22px;
+}
+
+/* footer */
 .sidebar-footer {
   text-align: center;
-  opacity: 0.7;
+  font-size: 12px;
+  color: #6b7280;
   padding-bottom: 10px;
+}
+
+/* Small tweak: reverse icon/text order for RTL so it looks natural */
+[dir="rtl"] .menu-item {
+  direction: rtl;
 }

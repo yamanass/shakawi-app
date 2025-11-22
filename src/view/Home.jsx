@@ -1,60 +1,115 @@
 // src/view/Home.jsx
-import React from "react";
+import React, { useMemo } from "react";
 import Sidebar from "../components/Sidebar";
-import "../app.css"; // لو عندك css عام
+import "../app.css";
 
 export default function Home() {
-  const SIDEBAR_WIDTH = 240; // غيّر إذا عرض السايدبار مختلف
+  const SIDEBAR_WIDTH = 240;
+
+  // detect current direction (reads document dir set في App.jsx)
+  const isRtl = useMemo(() => {
+    try {
+      return document?.documentElement?.getAttribute("dir") === "rtl";
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // compute inline styles to support both LTR/RTL
+  const mainStyle = {
+    marginLeft: isRtl ? 0 : SIDEBAR_WIDTH,
+    marginRight: isRtl ? SIDEBAR_WIDTH : 0,
+    width: `calc(100% - ${SIDEBAR_WIDTH}px)`,
+    minHeight: "100vh",
+    boxSizing: "border-box",
+    padding: "32px 40px",
+    transition: "0.25s ease",
+    display: "flex",
+    flexDirection: "column",
+    gap: "32px",
+  };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#eaf6ef" }}>
-      {/* Sidebar */}
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }}>
+      {/* Sidebar fixed: its CSS will place it left or right depending on dir */}
       <Sidebar />
 
-      {/* Main content — يملأ كل العرض المتبقي */}
-      <main
-        style={{
-          marginLeft: SIDEBAR_WIDTH,                // يترك مكان السايدبار
-          width: `calc(100% - ${SIDEBAR_WIDTH}px)`, // يملأ المساحة الباقية
-          minHeight: "100vh",
-          boxSizing: "border-box",
-          padding: "28px 36px",                     // المسافات داخل الصفحة
-          transition: "margin-left 0.2s, width 0.2s",
-        }}
-      >
-        {/* Content wrapper — بدون maxWidth أو margin:auto */}
-        <section
+      {/* Main wrapper */}
+      <main style={mainStyle}>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 600, color: "#1e293b" }}>
+          الرئيسية
+        </h1>
+
+        {/* TOP CARDS */}
+        <div
           style={{
-            width: "100%",               // مهم — ممتد بكامل المساحة المتبقية
-            background: "#fff",
-            padding: 28,
-            borderRadius: 12,
-            boxShadow: "0 6px 24px rgba(2,6,23,0.06)",
-            boxSizing: "border-box",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: 22,
           }}
         >
-          <h1 style={{ margin: 0, fontSize: 34, color: "#0f172a" }}>Home</h1>
-          <p style={{ color: "#55606a", marginTop: 10 }}>
-            Welcome to your dashboard. Now the Home area stretches from the sidebar to the right edge.
-          </p>
-
-          <div style={{ display: "flex", gap: 16, marginTop: 18 }}>
-            <div style={{ flex: 1, padding: 16, borderRadius: 10, background: "#f8fafc" }}>
-              <h3 style={{ marginTop: 0 }}>Ministries</h3>
-              <p style={{ margin: 0, color: "#6b7280" }}>List and actions appear here.</p>
-            </div>
-
-            <div style={{ flex: 1, padding: 16, borderRadius: 10, background: "#f0fdf4" }}>
-              <h3 style={{ marginTop: 0 }}>Branches</h3>
-              <p style={{ margin: 0, color: "#6b7280" }}>Branch summary here.</p>
-            </div>
-
-            <div style={{ flex: 1, padding: 16, borderRadius: 10, background: "#fff7ed" }}>
-              <h3 style={{ marginTop: 0 }}>Employees</h3>
-              <p style={{ margin: 0, color: "#6b7280" }}>Employees quick info.</p>
-            </div>
+          <div style={{
+            background: "#e8f1ff",
+            padding: 22,
+            borderRadius: 18,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}>
+            <h3 style={{ margin: 0, color: "#003f91", fontSize: 20 }}>الوزارات</h3>
+            <p style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 700, color: "#003f91" }}>0</p>
           </div>
-        </section>
+
+          <div style={{
+            background: "#e9f9f0",
+            padding: 22,
+            borderRadius: 18,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}>
+            <h3 style={{ margin: 0, color: "#0f5132", fontSize: 20 }}>الأفرع</h3>
+            <p style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 700, color: "#198754" }}>0</p>
+          </div>
+
+          <div style={{
+            background: "#fff4e5",
+            padding: 22,
+            borderRadius: 18,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}>
+            <h3 style={{ margin: 0, color: "#b45309", fontSize: 20 }}>الموظفون</h3>
+            <p style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 700, color: "#d97706" }}>0</p>
+          </div>
+        </div>
+
+        {/* SUMMARY CARD */}
+        <div style={{
+          background: "#fff",
+          padding: 28,
+          borderRadius: 18,
+          boxShadow: "0 6px 22px rgba(0,0,0,0.05)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+        }}>
+          <h2 style={{ margin: 0, fontSize: 24, color: "#1e293b" }}>ملخص النظام</h2>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: 20,
+            fontSize: 18,
+          }}>
+            <div>إجمالي الوزارات: <span style={{ fontWeight: 700, color: "#003f91" }}>0</span></div>
+            <div>إجمالي الأفرع: <span style={{ fontWeight: 700, color: "#198754" }}>0</span></div>
+            <div>إجمالي الموظفون: <span style={{ fontWeight: 700, color: "#d97706" }}>0</span></div>
+          </div>
+        </div>
       </main>
     </div>
   );
