@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next"; 
 import Dialog from "../../components/common/Dialog";
 import Crud from "../../services/Crud";
 import API from "../../services/api";
 
 const AddBranch = ({ onClose, onAdded }) => {
+  const { t, i18n } = useTranslation();
+
   const [branchNameAr, setBranchNameAr] = useState("");
   const [branchNameEn, setBranchNameEn] = useState("");
   const [selectedMinistry, setSelectedMinistry] = useState("");
@@ -11,25 +14,23 @@ const AddBranch = ({ onClose, onAdded }) => {
   const [ministries, setMinistries] = useState([]);
   const [governorates, setGovernorates] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(""); // رسالة النجاح/الخطأ
-  const [messageType, setMessageType] = useState("success"); // "success" أو "error"
+  const [message, setMessage] = useState(""); 
+  const [messageType, setMessageType] = useState("success"); 
 
   const crud = new Crud({
     baseURL: API.BASE,
     storageService: {
       getToken: () => localStorage.getItem("access_token"),
-      getLang: () => "ar",
+      getLang: () => i18n.language,
     },
   });
 
-  // جلب الوزارات
   useEffect(() => {
     crud.get(API.MINISTRY.READ)
       .then((res) => setMinistries(res.data.data))
       .catch(console.error);
   }, []);
 
-  // جلب المحافظات
   useEffect(() => {
     crud.get(API.GOVERNORATE.READ)
       .then((res) => setGovernorates(res.data.data))
@@ -53,7 +54,7 @@ const AddBranch = ({ onClose, onAdded }) => {
       setLoading(true);
       await crud.post("/ministry/branch/store", payload);
 
-      setMessage(`تم إضافة الفرع "${branchNameAr}" بنجاح!`);
+      setMessage(t("branchAdded", { name: branchNameAr }));
       setMessageType("success");
 
       if (onAdded) onAdded();
@@ -62,11 +63,10 @@ const AddBranch = ({ onClose, onAdded }) => {
       setSelectedMinistry("");
       setSelectedGovernorate("");
 
-      // الرسالة تختفي بعد 3 ثواني
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error("خطأ عند إضافة الفرع:", err);
-      setMessage("حدث خطأ أثناء الإضافة. حاول مرة أخرى.");
+      setMessage(t("branchAddError"));
       setMessageType("error");
       setTimeout(() => setMessage(""), 3000);
     } finally {
@@ -75,8 +75,7 @@ const AddBranch = ({ onClose, onAdded }) => {
   };
 
   return (
-    <Dialog title="إضافة فرع جديد" onClose={onClose}>
-      {/* رسالة النجاح / الخطأ تظهر فوق الفورم */}
+    <Dialog title={t("addBranch")} onClose={onClose}>
       {message && (
         <div
           style={{
@@ -94,13 +93,13 @@ const AddBranch = ({ onClose, onAdded }) => {
 
       <form className="ministry-form" onSubmit={handleSubmit}>
         <div className="form-field">
-          <label>اختر الوزارة:</label>
+          <label>{t("selectMinistry")}:</label>
           <select
             value={selectedMinistry}
             onChange={(e) => setSelectedMinistry(e.target.value)}
             required
           >
-            <option value="">اختر الوزارة</option>
+            <option value="">{t("selectMinistry")}</option>
             {ministries.map((min) => (
               <option key={min.id} value={min.id}>
                 {min.name}
@@ -110,7 +109,7 @@ const AddBranch = ({ onClose, onAdded }) => {
         </div>
 
         <div className="form-field">
-          <label>اسم الفرع بالعربي:</label>
+          <label>{t("branchNameAr")}:</label>
           <input
             type="text"
             value={branchNameAr}
@@ -120,23 +119,23 @@ const AddBranch = ({ onClose, onAdded }) => {
         </div>
 
         <div className="form-field">
-          <label>اسم الفرع بالإنجليزية:</label>
+          <label>{t("branchNameEn")}:</label>
           <input
             type="text"
             value={branchNameEn}
             onChange={(e) => setBranchNameEn(e.target.value)}
-            placeholder="يمكن تركه فارغ لاستخدام الاسم بالعربي"
+            placeholder={t("branchNameEnPlaceholder")}
           />
         </div>
 
         <div className="form-field">
-          <label>اختر المحافظة:</label>
+          <label>{t("selectGovernorate")}:</label>
           <select
             value={selectedGovernorate}
             onChange={(e) => setSelectedGovernorate(e.target.value)}
             required
           >
-            <option value="">اختر المحافظة</option>
+            <option value="">{t("selectGovernorate")}</option>
             {governorates.map((gov) => (
               <option key={gov.id} value={gov.id}>
                 {gov.name}
@@ -147,10 +146,10 @@ const AddBranch = ({ onClose, onAdded }) => {
 
         <div className="dialog-buttons">
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? "جاري الإضافة..." : "إضافة فرع"}
+            {loading ? t("loading") : t("addBranch")}
           </button>
           <button type="button" className="cancel-btn" onClick={onClose}>
-            إلغاء
+            {t("cancel")}
           </button>
         </div>
       </form>

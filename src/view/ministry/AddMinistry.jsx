@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next"; 
 import Dialog from "../../components/common/Dialog";
 import Crud from "../../services/Crud";
 import API from "../../services/api";
 import "./ministry.css";
 
 export default function AddMinistry({ onClose, onAdded }) {
+
+  const { t, i18n } = useTranslation(); 
+
   const [ministryNameAr, setMinistryNameAr] = useState("");
   const [ministryNameEn, setMinistryNameEn] = useState("");
   const [descriptionAr, setDescriptionAr] = useState("");
@@ -13,10 +17,10 @@ export default function AddMinistry({ onClose, onAdded }) {
   const [status, setStatus] = useState(true);
 
   const crud = new Crud({
-    baseURL: API.BASE,         // 👈 استخدام الـ BASE فقط
+    baseURL: API.BASE,
     storageService: {
       getToken: () => localStorage.getItem("access_token"),
-      getLang: () => "ar",
+      getLang: () => i18n.language,  // 👈 أهم شي: خلي اللغة تشبه لغة i18n
     },
   });
 
@@ -38,12 +42,8 @@ export default function AddMinistry({ onClose, onAdded }) {
       status: status,
     };
 
-    console.log("Payload:", payload);
-
     try {
-const res = await crud.post(API.MINISTRY.STORE, payload); // 👈 استخدام STORE بدل ADD أو undefined
-
-      console.log("Created:", res.data);
+await crud.post(API.MINISTRY.STORE, payload);
 
       if (onAdded) onAdded();
       if (onClose) onClose();
@@ -53,11 +53,11 @@ const res = await crud.post(API.MINISTRY.STORE, payload); // 👈 استخدام
   };
 
   return (
-    <Dialog title="إضافة وزارة جديدة" onClose={onClose}>
+    <Dialog title={t("addMinistry")} onClose={onClose}>
       <form className="ministry-form" onSubmit={handleSubmit}>
-        
+
         <div className="form-field">
-          <label>اسم الوزارة (عربي)</label>
+          <label>{t("ministryNameAr")}</label>
           <input
             type="text"
             value={ministryNameAr}
@@ -67,7 +67,7 @@ const res = await crud.post(API.MINISTRY.STORE, payload); // 👈 استخدام
         </div>
 
         <div className="form-field">
-          <label>اسم الوزارة (إنجليزي)</label>
+          <label>{t("ministryNameEn")}</label>
           <input
             type="text"
             value={ministryNameEn}
@@ -77,7 +77,7 @@ const res = await crud.post(API.MINISTRY.STORE, payload); // 👈 استخدام
         </div>
 
         <div className="form-field">
-          <label>الوصف (عربي)</label>
+          <label>{t("descriptionAr")}</label>
           <input
             type="text"
             value={descriptionAr}
@@ -86,7 +86,7 @@ const res = await crud.post(API.MINISTRY.STORE, payload); // 👈 استخدام
         </div>
 
         <div className="form-field">
-          <label>الوصف (إنجليزي)</label>
+          <label>{t("descriptionEn")}</label>
           <input
             type="text"
             value={descriptionEn}
@@ -95,7 +95,7 @@ const res = await crud.post(API.MINISTRY.STORE, payload); // 👈 استخدام
         </div>
 
         <div className="form-field">
-          <label>الاختصار</label>
+          <label>{t("abbreviation")}</label>
           <input
             type="text"
             value={abbreviation}
@@ -105,19 +105,21 @@ const res = await crud.post(API.MINISTRY.STORE, payload); // 👈 استخدام
         </div>
 
         <div className="form-field">
-          <label>الحالة</label>
+          <label>{t("status")}</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value === "true")}
           >
-            <option value="true">نشطة</option>
-            <option value="false">غير نشطة</option>
+            <option value="true">{t("active")}</option>
+            <option value="false">{t("inactive")}</option>
           </select>
         </div>
 
         <div className="dialog-buttons">
-          <button className="submit-btn" type="submit">حفظ</button>
-          <button className="cancel-btn" type="button" onClick={onClose}>إلغاء</button>
+          <button className="submit-btn" type="submit">{t("save")}</button>
+          <button className="cancel-btn" type="button" onClick={onClose}>
+            {t("cancel")}
+          </button>
         </div>
 
       </form>

@@ -25,51 +25,43 @@ export default function AddEmployee({ onAdded = () => {}, onCancel = () => {} })
 
   const [ministries, setMinistries] = useState([]);
   const [branches, setBranches] = useState([]);
-useEffect(() => {
-let mounted = true;
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await crud.get("/ministry/read");
+        const payload = res?.data ?? res?.raw?.data ?? null;
+        const items = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
+        if (mounted) setMinistries(items);
+      } catch (err) {
+        console.error("Failed to load ministries", err);
+        if (mounted) setMinistries([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
-(async () => {
-try {
-const res = await crud.get("/ministry/read");
-const payload = res?.data ?? res?.raw?.data ?? null;
-const items = Array.isArray(payload)
-? payload
-: (Array.isArray(payload?.data) ? payload.data : []);
-if (mounted) setMinistries(items);
-} catch (err) {
-console.error("Failed to load ministries", err);
-if (mounted) setMinistries([]);
-}
-})();
-
-
-return () => { mounted = false; };
-}, []);
- useEffect(() => {
-let mounted = true;
-(async () => {
-if (!ministry_id) {
-if (mounted) setBranches([]);
-return;
-}
-
-
-try {
-const res = await crud.get(`/ministry/readOne/${ministry_id}`);
-const payload = res?.data ?? res?.raw?.data ?? null;
-const ministryObj = payload?.data ?? payload ?? null;
-const items = Array.isArray(ministryObj?.branches) ? ministryObj.branches : [];
-if (mounted) setBranches(items);
-} catch (err) {
-console.warn("Failed to load branches for ministry", err);
-if (mounted) setBranches([]);
-}
-})();
-
-
-return () => { mounted = false; };
-}, [ministry_id]);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!ministry_id) {
+        if (mounted) setBranches([]);
+        return;
+      }
+      try {
+        const res = await crud.get(`/ministry/readOne/${ministry_id}`);
+        const payload = res?.data ?? res?.raw?.data ?? null;
+        const ministryObj = payload?.data ?? payload ?? null;
+        const items = Array.isArray(ministryObj?.branches) ? ministryObj.branches : [];
+        if (mounted) setBranches(items);
+      } catch (err) {
+        console.warn("Failed to load branches for ministry", err);
+        if (mounted) setBranches([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [ministry_id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,22 +92,10 @@ return () => { mounted = false; };
       const body = res?.data ?? res?.raw?.data ?? null;
 
       if (status === 200 || status === 201) {
-        // حاول استخراج الموظف الجديد من الاستجابة (أشكال مختلفة محتملة)
-        const newEmployee =
-          body?.data?.employee ||
-          body?.data ||
-          body?.employee ||
-          body;
-
-        // نمرر الموظف الجديد للأب ليحدث الواجهة محلياً
-        try {
-          await onAdded(newEmployee);
-        } catch (handlerErr) {
-          console.warn("[AddEmployee] onAdded handler failed:", handlerErr);
-        }
-
-        // اغلق الديالوج
-        try { onCancel(); } catch  {  console.warn("[AddEmployee] onAdded handler failed:");}
+        const newEmployee = body?.data?.employee || body?.data || body?.employee || body;
+        // أرسل الموظف الجديد للواجهة مباشرة
+        try { await onAdded(newEmployee); } catch (handlerErr) { console.warn("[AddEmployee] onAdded handler failed:", handlerErr); }
+        onCancel();
       } else {
         setError(body?.message || `Server returned ${status || "unknown status"}`);
       }
@@ -155,12 +135,11 @@ return () => { mounted = false; };
           {ministries.map((m) => <option key={m.id} value={m.id}>{m.name || m.ministry_name}</option>)}
         </select>
 
-       <select value={ministry_branch_id} onChange={(e) => setBranchId(e.target.value)} disabled={!branches || branches.length === 0}>
-<option value="">اختر الفرع (اختياري)</option>
-{branches.map((b) => <option key={b.id} value={b.id}>{b.name || b.title}</option>)}
-</select>
-</div>
-     
+        <select value={ministry_branch_id} onChange={(e) => setBranchId(e.target.value)} disabled={!branches || branches.length === 0}>
+          <option value="">اختر الفرع (اختياري)</option>
+          {branches.map((b) => <option key={b.id} value={b.id}>{b.name || b.title}</option>)}
+        </select>
+      </div>
 
       {error && <div style={{ color: "red" }}>{error}</div>}
 

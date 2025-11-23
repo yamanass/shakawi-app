@@ -5,12 +5,92 @@
   "login": "تسجيل الدخول",
   "loggingIn": "جاري تسجيل الدخول...",
   "pleaseFillMinistry": "الرجاء ملء اسم الوزارة والاختصار",
+
   "home": "الرئيسية",
   "currentRole": "الدور الحالي",
+
+  "ministries": "الوزارات",
+  "addMinistry": "إضافة وزارة جديدة",
+  "addBranch": "إضافة فرع للوزارة",
+
   "ministryName": "اسم الوزارة",
+  "ministryNameAr": "اسم الوزارة (عربي)",
+  "ministryNameEn": "اسم الوزارة (إنجليزي)",
+
   "abbreviation": "الاختصار",
   "description": "الوصف (اختياري)",
-  "active": "نشط",
-  "Dashboard":"لوحة التحكم"
-  
+  "descriptionAr": "الوصف (عربي)",
+  "descriptionEn": "الوصف (إنجليزي)",
+
+  "active": "نشطة",
+  "inactive": "غير نشطة",
+  "status": "الحالة",
+
+  "noDescription": "لا يوجد وصف",
+  "loadingData": "جاري تحميل البيانات...",
+
+  "branchesCount": "عدد الفروع",
+  "branches": "الفروع",
+  "noBranches": "لا يوجد فروع",
+
+  "ministryDetails": "تفاصيل الوزارة",
+  "branchDetails": "تفاصيل الفرع",
+  "branchNumber": "رقم الفرع",
+  "governorate": "المحافظة",
+  "branchManager": "مدير الفرع",
+  "creationDate": "تاريخ الإنشاء",
+
+  "undefined": "غير محدد",
+
+  "save": "حفظ",
+  "cancel": "إلغاء",
+
+  "branchNameAr": "اسم الفرع بالعربي",
+  "branchNameEn": "اسم الفرع بالإنجليزية",
+  "branchNameEnPlaceholder": "يمكن تركه فارغ لاستخدام الاسم بالعربي",
+  "selectMinistry": "اختر الوزارة",
+  "selectGovernorate": "اختر المحافظة",
+  "branchAdded": "تم إضافة الفرع \"{{name}}\" بنجاح!",
+  "branchAddError": "حدث خطأ أثناء إضافة الفرع. حاول مرة أخرى.",
+
+ 
+"systemSummary": "ملخص النظام",
+"totalMinistries": "إجمالي الوزارات",
+"totalBranches": "إجمالي الأفرع",
+"totalEmployees": "إجمالي الموظفون",
+
+ "employees": "الموظفون",
+  "addEmployee": "إضافة موظف",
+  "refresh": "تحديث",
+  "allMinistries": "جميع الوزارات",
+  "allBranches": "كل الفروع",
+  "loading": "جاري التحميل...",
+  "failedToFetchEmployees": "فشل جلب الموظفين",
+  "errorFetchingDetails": "حدث خطأ أثناء جلب التفاصيل",
+  "email": "البريد",
+  "phone": "الهاتف",
+  "startDate": "تاريخ البدء",
+  "ministry": "الوزارة",
+  "view": "عرض",
+  "edit": "تعديل",
+  "employeeDetails": "تفاصيل الموظف",
+
+  "fetchEmployeesError": "فشل جلب الموظفين",
+  "fetchEmployeeDetailError": "حدث خطأ أثناء جلب التفاصيل",
+ 
+  "addEmployeeDialogTitle": "إضافة موظف جديد",
+  "employeeDetailDialogTitle": "تفاصيل الموظف",
+
+"firstName": "الاسم الأول",
+"lastName": "اسم العائلة",
+"employee": "موظف",
+"manager": "مدير",
+"admin": "مدير النظام",
+"address": "العنوان",
+"selectBranchOptional": "اختر الفرع (اختياري)",
+"submitting": "جاري الإرسال...",
+"fillRequiredFields": "يرجى ملء الاسم والبريد والهاتف",
+"serverReturned": "الخادم أعاد الحالة",
+"unknownStatus": "حالة غير معروفة",
+"submitError": "خطأ أثناء الإرسال"
 }

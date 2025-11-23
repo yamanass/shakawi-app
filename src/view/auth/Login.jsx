@@ -89,7 +89,7 @@ const Login = () => {
 
       const role = result?.user?.role;
 
-      if (["citizen", "admin", "secretary", "center admin", "ministry"].includes(role)) {
+      if (["employee", "admin"].includes(role)) {
     navigate("/home", { replace: true });
 } else {
     alert(`Unsupported role: ${role}`);

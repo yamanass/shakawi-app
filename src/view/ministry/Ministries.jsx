@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";   // ← أضفناها
 import AddMinistry from "./AddMinistry";
 import AddBranch from "./AddBranch";
 import Dialog from "../../components/common/Dialog";
@@ -7,13 +8,15 @@ import API from "../../services/api.js";
 import "./ministry.css";
 
 export default function Ministries() {
+
+  const { t } = useTranslation();   // ← أضفناها
+
   const [ministries, setMinistries] = useState([]);
   const [showAddMinistry, setShowAddMinistry] = useState(false);
   const [showAddBranch, setShowAddBranch] = useState(false);
   const [selectedMinistry, setSelectedMinistry] = useState(null);
   const [selectedBranch, setSelectedBranch] = useState(null);
 
-  // إنشاء Crud مرة واحدة فقط
   const crud = useMemo(() => {
     return new Crud({
       baseURL: API.BASE,
@@ -51,15 +54,16 @@ export default function Ministries() {
 
   return (
     <div className="ministries-container">
-      <h2 className="page-title">الوزارات</h2>
+
+      <h2 className="page-title">{t("ministries")}</h2>
 
       <div className="buttons-container">
         <button className="add-btn" onClick={() => setShowAddMinistry(true)}>
-          إضافة وزارة جديدة
+          {t("addMinistry")}
         </button>
 
         <button className="add-btn" onClick={() => setShowAddBranch(true)}>
-          إضافة فرع للوزارة
+          {t("addBranch")}
         </button>
       </div>
 
@@ -90,25 +94,29 @@ export default function Ministries() {
             >
               <h3 className="min-title">{min.name}</h3>
               <p className="abbreviation">{min.abbreviation}</p>
-              <p className="description">{min.description || "لا يوجد وصف"}</p>
-              <p className="branches-count">عدد الفروع: {min.branches.length}</p>
+              <p className="description">
+                {min.description || t("noDescription")}
+              </p>
+              <p className="branches-count">
+                {t("branchesCount")}: {min.branches.length}
+              </p>
             </div>
           ))
         ) : (
-          <p className="loading">جاري تحميل البيانات...</p>
+          <p className="loading">{t("loadingData")}...</p>
         )}
       </div>
 
-      {/* Dialog تفاصيل الوزارة */}
       {selectedMinistry && (
         <Dialog
-          title={`تفاصيل ${selectedMinistry.name}`}
+          title={`${t("ministryDetails")} ${selectedMinistry.name}`}
           onClose={() => setSelectedMinistry(null)}
         >
-          <p><strong>الاختصار:</strong> {selectedMinistry.abbreviation}</p>
-          <p><strong>الوصف:</strong> {selectedMinistry.description || "لا يوجد وصف"}</p>
+          <p><strong>{t("abbreviation")}:</strong> {selectedMinistry.abbreviation}</p>
+          <p><strong>{t("description")}:</strong> {selectedMinistry.description || t("noDescription")}</p>
 
-          <h4>الفروع:</h4>
+          <h4>{t("branchesCount")}:</h4>
+
           <ul style={{ paddingLeft: 0, listStyle: "none" }}>
             {selectedMinistry.branches.length > 0 ? (
               selectedMinistry.branches.map((branch) => (
@@ -118,12 +126,13 @@ export default function Ministries() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "4px 0"
+                    padding: "4px 0",
                   }}
                 >
                   <span>
-                    {branch.name} - {branch.governorate?.name || "غير محدد"}
+                    {branch.name} - {branch.governorate?.name || t("undefined")}
                   </span>
+
                   <button
                     onClick={() => handleBranchClick(branch)}
                     style={{
@@ -131,31 +140,27 @@ export default function Ministries() {
                       background: "none",
                       border: "none",
                       color: "#0ea5e9",
-                      fontSize: "18px"
+                      fontSize: "18px",
                     }}
-                    title="عرض تفاصيل الفرع"
+                    title={t("branchDetails")}
                   >
                     👁️
                   </button>
                 </li>
               ))
             ) : (
-              <li>لا يوجد فروع</li>
+              <li>{t("noDescription")}</li>
             )}
           </ul>
         </Dialog>
       )}
 
-      {/* Dialog تفاصيل الفرع */}
       {selectedBranch && (
-        <Dialog
-          title={`تفاصيل الفرع`}
-          onClose={handleCloseBranch}
-        >
-          <p><strong>رقم الفرع:</strong> {selectedBranch.id}</p>
-          <p><strong>المحافظة:</strong> {selectedBranch.governorate?.name || "غير محدد"}</p>
-          <p><strong>مدير الفرع:</strong> {selectedBranch.manager_id || "غير محدد"}</p>
-          <p><strong>تاريخ الإنشاء:</strong> {new Date(selectedBranch.created_at).toLocaleString()}</p>
+        <Dialog title={t("branchDetails")} onClose={handleCloseBranch}>
+          <p><strong>{t("branchNumber")}:</strong> {selectedBranch.id}</p>
+          <p><strong>{t("governorate")}:</strong> {selectedBranch.governorate?.name || t("undefined")}</p>
+          <p><strong>{t("branchManager")}:</strong> {selectedBranch.manager_id || t("undefined")}</p>
+          <p><strong>{t("creationDate")}:</strong> {new Date(selectedBranch.created_at).toLocaleString()}</p>
         </Dialog>
       )}
     </div>
