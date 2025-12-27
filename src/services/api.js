@@ -18,7 +18,7 @@ const API = {
     LOGIN: `${BASE}/api/login`,
     LOGOUT: `${BASE}/api/logout`,
   },
-
+  
 };
 
 export default API;

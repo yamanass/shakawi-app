@@ -1,3 +1,4 @@
+// src/data/logindata.jsx (أو المسار الذي تستخدمه)
 import crud from '../services/crudInstance.js';
 import API from '../services/api.js';
 import ServerError from '../utils/ServerError.js';
@@ -34,7 +35,39 @@ const login = async (loginValue, password) => {
   localStorage.setItem('user_id', String(user?.id || ''));
   localStorage.setItem('user', JSON.stringify(user));
 
-  console.log('[loginAPI] saved tokens and user to localStorage');
+  // --- NEW: store ministry & branch info (best-effort using fallbacks) ---
+  try {
+    // possible shapes: user.more_info.ministry_branch_id, user.more_info.ministry.ministry_branch_id, user.employee_id links to employee record, etc.
+    const ministryId =
+      user?.more_info?.ministry?.id ||
+      user?.more_info?.ministry_id ||
+      user?.ministry?.id ||
+      user?.ministry_id ||
+      null;
+
+    const ministryBranchId =
+      user?.more_info?.ministry_branch_id ||
+      user?.more_info?.ministry_branch?.id ||
+      user?.ministry_branch_id ||
+      user?.ministry_branch?.id ||
+      null;
+
+    // store as strings (or empty string if null) so code reading is simple
+    if (ministryId) localStorage.setItem('ministry_id', String(ministryId));
+    else localStorage.removeItem('ministry_id');
+
+    if (ministryBranchId) localStorage.setItem('ministry_branch_id', String(ministryBranchId));
+    else localStorage.removeItem('ministry_branch_id');
+
+    // store ministry object (optional) so UI can read name quickly
+    const ministryObj = user?.more_info?.ministry || user?.ministry || null;
+    if (ministryObj) localStorage.setItem('ministry', JSON.stringify(ministryObj));
+    else localStorage.removeItem('ministry');
+
+    console.log('[loginAPI] saved tokens, user, ministry & branch to localStorage');
+  } catch (e) {
+    console.warn('[loginAPI] could not persist ministry/branch to localStorage', e);
+  }
 
   return { user, accessToken, refreshToken, message: body.message || body.status || 'Logged in' };
 };

@@ -9,7 +9,7 @@ function getCookie(name) {
   return match ? match[2] : null;
 }
 
-const BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
+const BASE = import.meta.env.VITE_API_BASE || '/api';
 
 // URLs we skip adding Authorization for (login, refresh)
 const SKIP_AUTH_URLS = [
@@ -52,6 +52,9 @@ export default class Crud {
 
   async get(url, params = {}) {
     return this._requestWithRefresh('get', url, { params });
+  }
+   async delete(url, data = {}) {
+    return this._requestWithRefresh('delete', url, data);
   }
 
   // unified request with refresh-token handling
