@@ -1,0 +1,108 @@
+// src/data/dashboardData.js
+import Crud from "../services/Crud.js";
+import API from "../services/api.js";
+
+const crud = new Crud({
+  baseURL: API.BASE,
+  storageService: {
+    getToken: () => localStorage.getItem("access_token"),
+    getLang: () => localStorage.getItem("lang") || "ar",
+  },
+});
+
+/**
+ * Fetch dashboard raw data from /getLog and normalize to a predictable shape.
+ */
+export async function fetchDashboardData() {
+  try {
+    const res = await crud.get("/getLog");
+    const body = res?.data ?? res?.raw?.data ?? res ?? {};
+
+    const ministries =
+      Number(body.ministries) ||
+      Number(body.ministries_count) ||
+      Number(body.total_ministries) ||
+      (Array.isArray(body.ministries_list) ? body.ministries_list.length : 0) ||
+      0;
+
+    const branches =
+      Number(body.branches) ||
+      Number(body.branches_count) ||
+      Number(body.total_branches) ||
+      (Array.isArray(body.branches_list) ? body.branches_list.length : 0) ||
+      0;
+
+    const employees =
+      Number(body.employees) ||
+      Number(body.employees_count) ||
+      Number(body.total_employees) ||
+      (Array.isArray(body.employees_list) ? body.employees_list.length : 0) ||
+      0;
+
+    const metrics = body.metrics || body.stats || body.statistics || {};
+    const updatedAt = body.updated_at || body.generated_at || new Date().toISOString();
+
+    return {
+      ministries,
+      branches,
+      employees,
+      metrics,
+      raw: body,
+      updatedAt,
+    };
+  } catch (err) {
+    console.error("[dashboardData] fetch failed:", err);
+    throw err;
+  }
+}
+
+/**
+ * Fetch the dashboard report (binary / PDF) from /getLog and open it.
+ * - If openInNewTab === true, will open the generated URL in a new browser tab.
+ * - Returns { blob, url, contentType } on success.
+ */
+export async function fetchDashboardReport(openInNewTab = true) {
+  try {
+    const token = localStorage.getItem("access_token");
+    const headers = {
+      Accept: "application/pdf, application/octet-stream, */*",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    // request blob directly
+    const res = await crud.client.get("/getLog", {
+      responseType: "blob",
+      headers,
+      validateStatus: () => true,
+    });
+
+    const contentType = (res.headers && (res.headers["content-type"] || res.headers["Content-Type"])) || "";
+    const blob = new Blob([res.data], { type: contentType || "application/pdf" });
+
+    // If the server returned JSON / text error as blob, attempt to parse and surface message
+    if (contentType.includes("application/json") || contentType.includes("text/plain")) {
+       {
+        const text = await blob.text();
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch { /* ignore */ }
+        const msg = parsed?.message || text || "Server returned non-PDF response";
+        throw new Error(msg);
+      } 
+    }
+
+    // success: open or return
+    const url = URL.createObjectURL(blob);
+    if (openInNewTab && typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener");
+      // revoke after a while to avoid leaking object URLs; tab still works
+      setTimeout(() => {
+        try { URL.revokeObjectURL(url); } catch { /* ignore */ }
+      }, 60 * 1000);
+    }
+
+    return { blob, url, contentType };
+  } catch (err) {
+    console.error("[dashboardData] fetchDashboardReport failed:", err);
+    throw err;
+  }
+}
