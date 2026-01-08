@@ -106,3 +106,77 @@ export async function fetchDashboardReport(openInNewTab = true) {
     throw err;
   }
 }
+export async function fetchStatsByStatus() {
+  try {
+    const res = await crud.get("/statistics/statsByStatus");
+    const body = res?.data ?? res?.raw?.data ?? res ?? [];
+    // ensure array
+    return Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
+  } catch (err) {
+    console.error("[dashboardData] fetchStatsByStatus failed:", err);
+    return []; // نفس نمط الباقي: لا ترمي خطأ هنا لتبقى الواجهة صامدة
+  }
+}
+
+/**
+ * /api/statistics/statsByMinistryAndBranch
+ * returns: [{ ministry_id, ministry_branch_id, total, ministry, ministry_branch }, ...]
+ */
+export async function fetchStatsByMinistryAndBranch() {
+  try {
+    const res = await crud.get("/statistics/statsByMinistryAndBranch");
+    const body = res?.data ?? res?.raw?.data ?? res ?? [];
+    return Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
+  } catch (err) {
+    console.error("[dashboardData] fetchStatsByMinistryAndBranch failed:", err);
+    return [];
+  }
+}
+
+/**
+ * /api/statistics/statsByMonth
+ * returns: [{ year, month, new_count, in_progress_count, resolved_count, rejected_count, total }, ...]
+ */
+export async function fetchStatsByMonth() {
+  try {
+    const res = await crud.get("/statistics/statsByMonth");
+    const body = res?.data ?? res?.raw?.data ?? res ?? [];
+    return Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
+  } catch (err) {
+    console.error("[dashboardData] fetchStatsByMonth failed:", err);
+    return [];
+  }
+}
+export async function fetchStatsByUserActivity() {
+  try {
+    const res = await crud.get("/statistics/statsByUserActivity");
+    const body = res?.data ?? res?.raw?.data ?? res ?? null;
+    // backend may return array directly or { data: [...] }
+    const list = body?.data ?? (Array.isArray(body) ? body : []);
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("[fetchStatsByUserActivity] error:", err);
+    return [];
+  }
+}
+export async function fetchCounts() {
+  try {
+    const res = await crud.get("/statistics/getCounts");
+    const body = res?.data ?? res?.raw?.data ?? res ?? null;
+    const payload = body?.data ?? body ?? {};
+
+    const employees_count = Number(payload?.employees_count ?? payload?.employees ?? 0) || 0;
+    const ministries_count = Number(payload?.ministries_count ?? payload?.ministries ?? 0) || 0;
+    const branches_count = Number(payload?.branches_count ?? payload?.branches ?? 0) || 0;
+
+    return {
+      employees_count,
+      ministries_count,
+      branches_count,
+      raw: payload,
+    };
+  } catch (err) {
+    console.error("[fetchCounts] error:", err);
+    return { employees_count: 0, ministries_count: 0, branches_count: 0, raw: null };
+  }
+}

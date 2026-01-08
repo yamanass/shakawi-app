@@ -206,34 +206,42 @@ export default function Complaints() {
   }, []);
 
   const fetchComplaints = useCallback(async (opts = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      let res;
-      if (opts.branchId || opts.branch_id) {
-        const b = opts.branchId || opts.branch_id;
-        res = await crud.get(`/ministry/branch/${b}/complaints`);
-      } else if (opts.ministryId || opts.ministry_id) {
-        const m = opts.ministryId || opts.ministry_id;
-        res = await crud.get(`/ministry/${m}/complaints`);
-      } else {
-        res = await crud.get(`/complaint`);
-      }
-
-      const body = res?.data ?? res?.raw?.data ?? null;
-      const list = body?.data ?? (Array.isArray(body) ? body : []);
-      setComplaints(Array.isArray(list) ? list : []);
-      return list;
-    } catch (err) {
-      console.error("[fetchComplaints] error:", err);
-      const msg = err?.response?.data?.message || err?.message || "فشل جلب الشكاوي";
-      setError(msg);
-      setComplaints([]);
-      return [];
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  setError(null);
+  try {
+    let res;
+    if (opts.branchId || opts.branch_id) {
+      const b = opts.branchId || opts.branch_id;
+      res = await crud.get(`/ministry/branch/${b}/complaints`);
+    } else if (opts.ministryId || opts.ministry_id) {
+      const m = opts.ministryId || opts.ministry_id;
+      res = await crud.get(`/ministry/${m}/complaints`);
+    } else {
+      res = await crud.get(`/complaint`);
     }
-  }, []);
+
+    const body = res?.data ?? res?.raw?.data ?? null;
+
+    // اكثر مرونة في استخراج القائمة
+    let list = [];
+    if (Array.isArray(body)) list = body;
+    else if (Array.isArray(body?.data)) list = body.data;
+    else if (Array.isArray(body?.complaints)) list = body.complaints;
+    else if (Array.isArray(body?.data?.complaints)) list = body.data.complaints;
+    else list = [];
+
+    setComplaints(list);
+    return list;
+  } catch (err) {
+    console.error("[fetchComplaints] error:", err);
+    const msg = err?.response?.data?.message || err?.message || "فشل جلب الشكاوي";
+    setError(msg);
+    setComplaints([]);
+    return [];
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const fetchComplaintById = useCallback(async (id) => {
     setLoading(true);
@@ -262,34 +270,53 @@ export default function Complaints() {
 
   // update status (unchanged)
   const updateComplaintStatus = async (id, status, reason = "") => {
-    const allowed = ["resolved", "rejected"];
-    if (!allowed.includes(status)) {
-      alert("الحالة المسموح بها فقط: resolved أو rejected");
-      return;
-    }
-    if (status === "rejected" && (!reason || !reason.trim())) {
-      alert("سبب الرفض مطلوب عند اختيار 'رفض'.");
-      return;
+  const allowed = ["resolved", "rejected"];
+  if (!allowed.includes(status)) {
+    alert("الحالة المسموح بها فقط: resolved أو rejected");
+    return;
+  }
+  if (status === "rejected" && (!reason || !reason.trim())) {
+    alert("سبب الرفض مطلوب عند اختيار 'رفض'.");
+    return;
+  }
+
+  setStatusUpdating(true);
+  try {
+    const payload = status === "rejected" ? { status, reason } : { status };
+    const response = await crud.post(`/complaint/updateStatus/${id}`, payload);
+    console.log("[updateComplaintStatus] response:", response);
+
+    // 1) حدّث selectedComplaint
+    setSelectedComplaint((prev) => (prev ? { ...prev, status } : prev));
+
+    // 2) تحديث فوري للقائمة محلياً (optimistic update)
+    setComplaints((prev) => prev.map((c) => (String(c.id) === String(id) ? { ...c, status } : c)));
+
+    // 3) ثم مزامنة نهائية مع السيرفر (اختياري but safe)
+    try {
+      await fetchComplaints(
+        selectedBranch
+          ? { branchId: selectedBranch }
+          : selectedMinistry
+          ? { ministryId: selectedMinistry }
+          : {}
+      );
+    } catch (e) {
+      console.warn("[updateComplaintStatus] fetchComplaints sync failed", e);
     }
 
-    setStatusUpdating(true);
-    try {
-      const payload = status === "rejected" ? { status, reason } : { status };
-      const response = await crud.post(`/complaint/updateStatus/${id}`, payload);
-      console.log("[updateComplaintStatus] response:", response);
-      setSelectedComplaint((prev) => (prev ? { ...prev, status } : prev));
-      await fetchComplaints(selectedBranch ? { branchId: selectedBranch } : (selectedMinistry ? { ministryId: selectedMinistry } : {}));
-      alert("تم تحديث حالة الشكوى بنجاح.");
-      setShowRejectReason(false);
-      setStatusReason("");
-    } catch (err) {
-      console.error("[updateComplaintStatus] error:", err);
-      const msg = err?.response?.data?.message || err?.message || "فشل تحديث الحالة";
-      alert(msg);
-    } finally {
-      setStatusUpdating(false);
-    }
-  };
+    alert("تم تحديث حالة الشكوى بنجاح.");
+    setShowRejectReason(false);
+    setStatusReason("");
+  } catch (err) {
+    console.error("[updateComplaintStatus] error:", err);
+    const msg = err?.response?.data?.message || err?.message || "فشل تحديث الحالة";
+    alert(msg);
+  } finally {
+    setStatusUpdating(false);
+  }
+};
+
 
   // -------------------------
   // useEffect: load ministries + limit for employee (same approach as سابقاً)
@@ -682,20 +709,28 @@ export default function Complaints() {
                           return;
                         }
 
-                        setStatusUpdating(true);
-                        try {
-                          const response = await complaintData.startProcessingComplaint(selectedComplaint.id);
-                          console.log("[startProcessing] response:", response);
-                          setSelectedComplaint((prev) => (prev ? { ...prev, status: "in_progress" } : prev));
-                          await fetchComplaints(selectedBranch ? { branchId: selectedBranch } : (selectedMinistry ? { ministryId: selectedMinistry } : {}));
-                          alert("تم بدء المعالجة.");
-                        } catch (err) {
-                          console.error("[startProcessing] error:", err);
-                          const msg = err?.message || err?.response?.data?.message || "فشل بدء المعالجة";
-                          alert(msg);
-                        } finally {
-                          setStatusUpdating(false);
-                        }
+                       setStatusUpdating(true);
+try {
+  const response = await complaintData.startProcessingComplaint(selectedComplaint.id);
+  console.log("[startProcessing] response:", response);
+
+  // حدّث الـ dialog و الـ list محلياً
+  setSelectedComplaint((prev) => (prev ? { ...prev, status: "in_progress" } : prev));
+  setComplaints((prev) => prev.map((c) => (String(c.id) === String(selectedComplaint.id) ? { ...c, status: "in_progress" } : c)));
+
+  // مزامنة مع السيرفر
+  try {
+    await fetchComplaints(selectedBranch ? { branchId: selectedBranch } : (selectedMinistry ? { ministryId: selectedMinistry } : {}));
+  } catch (e) { console.warn("[startProcessing] sync failed", e); }
+
+  alert("تم بدء المعالجة.");
+} catch (err) {
+  console.error("[startProcessing] error:", err);
+  const msg = err?.message || err?.response?.data?.message || "فشل بدء المعالجة";
+  alert(msg);
+} finally {
+  setStatusUpdating(false);
+}
                       }}
                       disabled={statusUpdating}
                       style={{ padding: "8px 12px", borderRadius: 8, background: "#eef6ff", border: "1px solid #2b7ed3" }}

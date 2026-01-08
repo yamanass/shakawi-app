@@ -23,6 +23,10 @@ export default function Ministries() {
   const [showPdfDialog, setShowPdfDialog] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  // deleting states
+  const [deletingMinistryId, setDeletingMinistryId] = useState(null);
+  const [deletingBranchId, setDeletingBranchId] = useState(null);
+
   const crud = useMemo(() => {
     return new Crud({
       baseURL: API.BASE,
@@ -32,6 +36,18 @@ export default function Ministries() {
       },
     });
   }, []);
+
+  const buildApiUrl = (path) => {
+    const base = (API.BASE || "").replace(/\/+$/, "");
+    if (!path) return base;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return `${base}${path.startsWith("/") ? path : "/" + path}`;
+  };
+
+  const _getAuthHeader = () => {
+    const token = localStorage.getItem("access_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   const fetchMinistries = useCallback(async () => {
     try {
@@ -43,6 +59,7 @@ export default function Ministries() {
       }
     } catch (err) {
       console.error("Error fetching ministries:", err);
+      setMinistries([]);
     }
   }, [crud]);
 
@@ -50,19 +67,49 @@ export default function Ministries() {
     fetchMinistries();
   }, [fetchMinistries]);
 
-  const handleBranchClick = (branch) => {
-    setSelectedBranch(branch);
+  // Delete ministry
+  const deleteMinistry = async (ministryId) => {
+    if (!ministryId) return;
+    if (!window.confirm("تأكيد: هل تريد حذف هذه الوزارة نهائياً؟ هذه العملية لا يمكن التراجع عنها.")) return;
+    setDeletingMinistryId(ministryId);
+    try {
+      const url = buildApiUrl(`/ministry/delete/${ministryId}`);
+      await crud.client.delete(url, { headers: { ..._getAuthHeader() } });
+      alert("تم حذف الوزارة بنجاح.");
+      // refresh list and close detail if opened
+      await fetchMinistries();
+      if (selectedMinistry && selectedMinistry.id === ministryId) setSelectedMinistry(null);
+    } catch (err) {
+      console.error("[deleteMinistry] error:", err);
+      const msg = err?.response?.data?.message || err?.message || "فشل حذف الوزارة";
+      alert(msg);
+    } finally {
+      setDeletingMinistryId(null);
+    }
   };
-  const handleCloseBranch = () => {
-    setSelectedBranch(null);
+
+  // Delete branch
+  const deleteBranch = async (branchId) => {
+    if (!branchId) return;
+    if (!window.confirm("تأكيد: هل تريد حذف هذا الفرع نهائياً؟ هذه العملية لا يمكن التراجع عنها.")) return;
+    setDeletingBranchId(branchId);
+    try {
+      const url = buildApiUrl(`/ministry/branch/delete/${branchId}`);
+      await crud.client.delete(url, { headers: { ..._getAuthHeader() } });
+      alert("تم حذف الفرع بنجاح.");
+      // refresh list and close branch dialog if opened
+      await fetchMinistries();
+      if (selectedBranch && selectedBranch.id === branchId) setSelectedBranch(null);
+    } catch (err) {
+      console.error("[deleteBranch] error:", err);
+      const msg = err?.response?.data?.message || err?.message || "فشل حذف الفرع";
+      alert(msg);
+    } finally {
+      setDeletingBranchId(null);
+    }
   };
 
   // ----- Download / View PDF helpers -----
-  const _getAuthHeader = () => {
-    const token = localStorage.getItem("access_token");
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
-
   const _openBlob = (blob) => {
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank", "noopener");
@@ -112,7 +159,6 @@ export default function Ministries() {
     }
   };
 
-  // build absolute URL robustly using API.BASE
   const buildReportUrl = (path) => {
     const base = (API.BASE || "").replace(/\/+$/, "");
     if (path.startsWith("http://") || path.startsWith("https://")) return path;
@@ -133,7 +179,6 @@ export default function Ministries() {
     await _fetchAndShowReport(url, `تقرير الفرع ${branchId}`, useDialog);
   };
 
-  // close pdf dialog and revoke url
   const closePdfDialog = () => {
     setShowPdfDialog(false);
     if (pdfUrl) {
@@ -143,7 +188,7 @@ export default function Ministries() {
     }
   };
 
-  // ICON ONLY (no text) — stops propagation so clicking it doesn't open the parent card
+  // ICON ONLY (no text) — stops propagation
   const ReportIcon = ({ onClick, title = "عرض التقرير", disabled = false, color = "#059669" }) => (
     <button
       onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (!disabled && typeof onClick === "function") onClick(); }}
@@ -190,12 +235,31 @@ export default function Ministries() {
               key={min.id}
               title={min.description}
               onClick={() => setSelectedMinistry(min)}
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", position: "relative" }}
             >
               <h3 className="min-title">{min.name}</h3>
               <p className="abbreviation">{min.abbreviation}</p>
               <p className="description">{min.description || t("noDescription")}</p>
               <p className="branches-count">{t("branchesCount")}: {min.branches.length}</p>
+
+              {/* delete ministry icon (stopPropagation so card doesn't open) */}
+              <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 8 }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteMinistry(min.id); }}
+                  disabled={Boolean(deletingMinistryId)}
+                  title="حذف الوزارة"
+                  style={{
+                    background: deletingMinistryId === min.id ? "#fee2e2" : "transparent",
+                    border: "none",
+                    cursor: deletingMinistryId ? "not-allowed" : "pointer",
+                    color: "#dc2626",
+                    padding: 6,
+                    borderRadius: 6,
+                  }}
+                >
+                  {deletingMinistryId === min.id ? "جارٍ..." : "🗑️"}
+                </button>
+              </div>
             </div>
           ))
         ) : (
@@ -210,7 +274,6 @@ export default function Ministries() {
           <p><strong>{t("description")}:</strong> {selectedMinistry.description || t("noDescription")}</p>
 
           <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center" }}>
-            {/* icon + label for ministry report */}
             <ReportIcon
               onClick={() => handleViewMinistryReport(selectedMinistry.id, true)}
               disabled={pdfLoading}
@@ -220,6 +283,15 @@ export default function Ministries() {
             <span style={{ marginLeft: 6, fontSize: 14, fontWeight: 600, color: "#0ea5e9" }}>
               عرض التقرير
             </span>
+
+            {/* delete ministry button inside dialog */}
+            <button
+              onClick={async () => { await deleteMinistry(selectedMinistry.id); }}
+              disabled={Boolean(deletingMinistryId)}
+              style={{ marginLeft: "auto", background: "#fee2e2", border: "1px solid #fca5a5", padding: "8px 10px", borderRadius: 8, color: "#b91c1c" }}
+            >
+              {deletingMinistryId === selectedMinistry.id ? "جارٍ الحذف..." : "حذف الوزارة"}
+            </button>
           </div>
 
           <h4 style={{ marginTop: 14 }}>{t("branchesCount")}:</h4>
@@ -231,21 +303,38 @@ export default function Ministries() {
                   <span>{branch.name} - {branch.governorate?.name || t("undefined")}</span>
 
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleBranchClick(branch); }}
-                      style={{ cursor: "pointer", background: "none", border: "none", color: "#0ea5e9", fontSize: "18px" }}
-                      title={t("branchDetails")}
-                    >
-                      👁️
-                    </button>
+                   <button
+  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setSelectedBranch(branch); }}
+  style={{ cursor: "pointer", background: "none", border: "none", color: "#0ea5e9", fontSize: "18px" }}
+  title={t("branchDetails")}
+>
+  👁️
+</button>
 
-                    {/* report icon per branch in list (keeps report access next to each branch) */}
                     <ReportIcon
                       onClick={() => handleViewBranchReport(branch.id, true)}
                       disabled={pdfLoading}
                       title="عرض تقرير الفرع"
                       color="#059669"
                     />
+
+                    {/* delete branch button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteBranch(branch.id); }}
+                      disabled={Boolean(deletingBranchId)}
+                      title="حذف الفرع"
+                      style={{
+                        background: deletingBranchId === branch.id ? "#fee2e2" : "transparent",
+                        border: "none",
+                        cursor: deletingBranchId ? "not-allowed" : "pointer",
+                        color: "#dc2626",
+                        padding: 6,
+                        borderRadius: 6,
+                        fontSize: 16,
+                      }}
+                    >
+                      {deletingBranchId === branch.id ? "جارٍ..." : "🗑️"}
+                    </button>
                   </div>
                 </li>
               ))
@@ -256,17 +345,28 @@ export default function Ministries() {
         </Dialog>
       )}
 
-      {/* Branch details dialog (no report icon here anymore) */}
+      {/* Branch details dialog (opened when clicking eye on branch list) */}
       {selectedBranch && (
-        <Dialog title={t("branchDetails")} onClose={handleCloseBranch}>
+        <Dialog title={t("branchDetails")} onClose={() => setSelectedBranch(null)}>
           <p><strong>{t("branchNumber")}:</strong> {selectedBranch.id}</p>
           <p><strong>{t("governorate")}:</strong> {selectedBranch.governorate?.name || t("undefined")}</p>
           <p><strong>{t("branchManager")}:</strong> {selectedBranch.manager_id || t("undefined")}</p>
-          <p><strong>{t("creationDate")}:</strong> {new Date(selectedBranch.created_at).toLocaleString()}</p>
+          <p><strong>{t("creationDate")}:</strong> {selectedBranch.created_at ? new Date(selectedBranch.created_at).toLocaleString() : "-"}</p>
+
+          <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+            <button onClick={() => handleViewBranchReport(selectedBranch.id, true)} className="submit-btn">عرض تقرير الفرع</button>
+            <button
+              onClick={async () => { await deleteBranch(selectedBranch.id); }}
+              disabled={Boolean(deletingBranchId)}
+              className="cancel-btn"
+            >
+              {deletingBranchId === selectedBranch.id ? "جارٍ الحذف..." : "حذف الفرع"}
+            </button>
+          </div>
         </Dialog>
       )}
 
-      {/* PDF Dialog (iframe viewer) */}
+      {/* PDF Dialog */}
       {showPdfDialog && pdfUrl && (
         <Dialog title={pdfTitle || t("report")} onClose={closePdfDialog}>
           <div style={{ minWidth: 640, minHeight: 480 }}>
