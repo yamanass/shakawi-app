@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Crud from "../../services/Crud.js";
 
 const crud = new Crud({
-  baseURL: "http://10.194.133.219:8000/api",
+  baseURL: "http://172.20.10.2:8000/api",
   storageService: {
     getToken: () => localStorage.getItem("access_token"),
     getLang: () => localStorage.getItem("lang") || "ar",

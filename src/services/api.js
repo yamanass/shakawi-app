@@ -1,5 +1,5 @@
 // src/api/api.js
-const BASE = import.meta.env.REACT_APP_API_BASE || 'http://10.194.133.219:8000';
+const BASE = import.meta.env.REACT_APP_API_BASE || 'http://172.20.10.2:8000';
 
 const API = {
    BASE: `${BASE}/api`,
