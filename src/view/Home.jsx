@@ -147,15 +147,26 @@ export default function Home() {
                 <thead>
                   <tr><th>{t("ministry")}</th><th>{t("branches")}</th><th style={{textAlign: "center"}}>{t("count")}</th></tr>
                 </thead>
-                <tbody>
-                  {byMinistryBranch.map((r, i) => (
-                    <tr key={i}>
-                      <td><span className="badge-ministry">{r.ministry?.abbreviation || r.ministry?.name}</span></td>
-                      <td>{r.ministry_branch?.name || t("allBranches")}</td>
-                      <td style={{ textAlign: "center", fontWeight: "700" }}>{r.total}</td>
-                    </tr>
-                  ))}
-                </tbody>
+            {/* الجزء المعدل في الجدول */}
+<tbody>
+  {byMinistryBranch.map((r, i) => (
+    <tr key={i}>
+      {/* التعديل هنا: نعرض r.ministry مباشرة لأنه نص في الجيسن */}
+      <td>
+        <span className="badge-ministry">
+          {typeof r.ministry === 'string' ? r.ministry : (r.ministry?.abbreviation || r.ministry?.name || t("undefined"))}
+        </span>
+      </td>
+      
+      {/* التعديل هنا أيضاً للفرع: نعرض r.branch مباشرة */}
+      <td>
+        {typeof r.branch === 'string' ? r.branch : (r.ministry_branch?.name || t("allBranches"))}
+      </td>
+      
+      <td style={{ textAlign: "center", fontWeight: "700" }}>{r.total}</td>
+    </tr>
+  ))}
+</tbody>
               </table>
             </div>
           </div>
