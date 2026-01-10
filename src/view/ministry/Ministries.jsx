@@ -11,7 +11,10 @@ import "./ministry.css";
 export default function Ministries() {
   const { t } = useTranslation();
 
-  const [ministries, setMinistries] = useState([]);
+  // split active / trashed
+  const [activeMinistries, setActiveMinistries] = useState([]);
+  const [trashedMinistries, setTrashedMinistries] = useState([]);
+
   const [showAddMinistry, setShowAddMinistry] = useState(false);
   const [showAddBranch, setShowAddBranch] = useState(false);
   const [selectedMinistry, setSelectedMinistry] = useState(null);
@@ -49,17 +52,52 @@ export default function Ministries() {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
+  // fetch ministries — try readAll (active/trashed shape) first, fallback to old read
   const fetchMinistries = useCallback(async () => {
     try {
-      const res = await crud.get(API.MINISTRY.READ);
-      if (res.data && Array.isArray(res.data.data)) {
-        setMinistries(res.data.data);
-      } else {
-        setMinistries([]);
+      // try endpoint that returns { data: { active: [], trashed: [] } }
+      let res = null;
+      try {
+        res = await crud.get("/ministry/readAll");
+      } catch  {
+        // fallback to configured API constant if readAll not available
+     
       }
+
+      // Normalize different shapes
+      const body = res?.data ?? res ?? {};
+      const payload = body?.data ?? body;
+
+      // case 1: payload is object with active / trashed
+      if (payload && typeof payload === "object" && (Array.isArray(payload.active) || Array.isArray(payload.trashed))) {
+        setActiveMinistries(Array.isArray(payload.active) ? payload.active : []);
+        setTrashedMinistries(Array.isArray(payload.trashed) ? payload.trashed : []);
+        return;
+      }
+
+      // case 2: payload is an array (old format) -> treat all as active
+      if (Array.isArray(payload)) {
+        setActiveMinistries(payload);
+        setTrashedMinistries([]);
+        return;
+      }
+
+      // case 3: maybe payload.data is array
+      if (Array.isArray(body?.data)) {
+        setActiveMinistries(body.data);
+        setTrashedMinistries([]);
+        return;
+      }
+
+      // default: clear
+      setActiveMinistries([]);
+      setTrashedMinistries([]);
     } catch (err) {
       console.error("Error fetching ministries:", err);
-      setMinistries([]);
+      setActiveMinistries([]);
+      setTrashedMinistries([]);
+      // optional: show user message
+      // alert('فشل تحميل الوزارات من السيرفر.');
     }
   }, [crud]);
 
@@ -76,7 +114,6 @@ export default function Ministries() {
       const url = buildApiUrl(`/ministry/delete/${ministryId}`);
       await crud.client.delete(url, { headers: { ..._getAuthHeader() } });
       alert("تم حذف الوزارة بنجاح.");
-      // refresh list and close detail if opened
       await fetchMinistries();
       if (selectedMinistry && selectedMinistry.id === ministryId) setSelectedMinistry(null);
     } catch (err) {
@@ -97,7 +134,6 @@ export default function Ministries() {
       const url = buildApiUrl(`/ministry/branch/delete/${branchId}`);
       await crud.client.delete(url, { headers: { ..._getAuthHeader() } });
       alert("تم حذف الفرع بنجاح.");
-      // refresh list and close branch dialog if opened
       await fetchMinistries();
       if (selectedBranch && selectedBranch.id === branchId) setSelectedBranch(null);
     } catch (err) {
@@ -214,6 +250,10 @@ export default function Ministries() {
     </button>
   );
 
+  const branchesCount = (m) => {
+    return m?.branches?.length ?? m?.branches_count ?? 0;
+  };
+
   return (
     <div className="ministries-container">
       <h2 className="page-title">{t("ministries")}</h2>
@@ -225,47 +265,95 @@ export default function Ministries() {
 
       {showAddMinistry && <AddMinistry onAdded={fetchMinistries} onClose={() => setShowAddMinistry(false)} />}
 
-      {showAddBranch && <AddBranch ministryId={ministries[0]?.id} onAdded={fetchMinistries} onClose={() => setShowAddBranch(false)} />}
+      {showAddBranch && <AddBranch ministryId={activeMinistries[0]?.id} onAdded={fetchMinistries} onClose={() => setShowAddBranch(false)} />}
 
-      <div className="ministries-cards">
-        {ministries.length > 0 ? (
-          ministries.map((min) => (
-            <div
-              className="ministry-card"
-              key={min.id}
-              title={min.description}
-              onClick={() => setSelectedMinistry(min)}
-              style={{ cursor: "pointer", position: "relative" }}
-            >
-              <h3 className="min-title">{min.name}</h3>
-              <p className="abbreviation">{min.abbreviation}</p>
-              <p className="description">{min.description || t("noDescription")}</p>
-              <p className="branches-count">{t("branchesCount")}: {min.branches.length}</p>
+      {/* Active ministries (same style as before) */}
+      <div style={{ marginTop: 12 }}>
+        <h3 style={{ marginBottom: 8 }}>الوزارات (النشطة)</h3>
+        <div className="ministries-cards">
+          {activeMinistries.length > 0 ? (
+            activeMinistries.map((min) => (
+              <div
+                className="ministry-card"
+                key={min.id}
+                title={min.description}
+                onClick={() => setSelectedMinistry(min)}
+                style={{ cursor: "pointer", position: "relative" }}
+              >
+                <h3 className="min-title">{min.name}</h3>
+                <p className="abbreviation">{min.abbreviation}</p>
+                <p className="description">{min.description || t("noDescription")}</p>
+                <p className="branches-count">{t("branchesCount")}: {branchesCount(min)}</p>
 
-              {/* delete ministry icon (stopPropagation so card doesn't open) */}
-              <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 8 }}>
-                <button
-                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteMinistry(min.id); }}
-                  disabled={Boolean(deletingMinistryId)}
-                  title="حذف الوزارة"
-                  style={{
-                    background: deletingMinistryId === min.id ? "#fee2e2" : "transparent",
-                    border: "none",
-                    cursor: deletingMinistryId ? "not-allowed" : "pointer",
-                    color: "#dc2626",
-                    padding: 6,
-                    borderRadius: 6,
-                  }}
-                >
-                  {deletingMinistryId === min.id ? "جارٍ..." : "🗑️"}
-                </button>
+                {/* delete ministry icon (stopPropagation so card doesn't open) */}
+                <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 8 }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteMinistry(min.id); }}
+                    disabled={Boolean(deletingMinistryId)}
+                    title="حذف الوزارة"
+                    style={{
+                      background: deletingMinistryId === min.id ? "#fee2e2" : "transparent",
+                      border: "none",
+                      cursor: deletingMinistryId ? "not-allowed" : "pointer",
+                      color: "#dc2626",
+                      padding: 6,
+                      borderRadius: 6,
+                    }}
+                  >
+                    {deletingMinistryId === min.id ? "جارٍ..." : "🗑️"}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className="loading">{t("loadingData")}...</p>
-        )}
+            ))
+          ) : (
+            <p className="loading">{t("loadingData")}...</p>
+          )}
+        </div>
       </div>
+
+     {/* Trashed ministries (red cards) */}
+<div style={{ marginTop: 28 }}>
+  <h3 style={{ marginBottom: 8, color: "#991b1b" }}>الوزارات المحذوفة</h3>
+  {trashedMinistries.length === 0 ? (
+    <div style={{ color: "#6b7280" }}>لا توجد وزارات محذوفة.</div>
+  ) : (
+    <div className="ministries-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+      {trashedMinistries.map((min) => (
+        <div
+          key={`trashed-${min.id}`}
+          className="ministry-card trashed"
+          title={min.description}
+          onClick={() => setSelectedMinistry(min)}
+          style={{ cursor: "pointer", position: "relative" }}
+        >
+          <h3 className="min-title" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{min.name}</h3>
+          <div style={{ marginTop: 6, fontSize: 13 }}>{min.abbreviation}</div>
+          <div style={{ marginTop: 8, fontSize: 13 }}>{min.description || t("noDescription")}</div>
+          <div style={{ marginTop: 10, fontWeight: 700 }}>{t("branchesCount")}: {branchesCount(min)}</div>
+
+          {/* delete icon (still allow) */}
+          <div style={{ position: "absolute", top: 8, right: 8 }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteMinistry(min.id); }}
+              disabled={Boolean(deletingMinistryId)}
+              title="حذف نهائي"
+              style={{
+                background: deletingMinistryId === min.id ? "#fee2e2" : "transparent",
+                border: "none",
+                cursor: deletingMinistryId ? "not-allowed" : "pointer",
+                color: "#9f1239",
+                padding: 6,
+                borderRadius: 6,
+              }}
+            >
+             
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
       {/* Ministry details dialog */}
       {selectedMinistry && (
@@ -283,33 +371,24 @@ export default function Ministries() {
             <span style={{ marginLeft: 6, fontSize: 14, fontWeight: 600, color: "#0ea5e9" }}>
               عرض التقرير
             </span>
-
-            {/* delete ministry button inside dialog */}
-            <button
-              onClick={async () => { await deleteMinistry(selectedMinistry.id); }}
-              disabled={Boolean(deletingMinistryId)}
-              style={{ marginLeft: "auto", background: "#fee2e2", border: "1px solid #fca5a5", padding: "8px 10px", borderRadius: 8, color: "#b91c1c" }}
-            >
-              {deletingMinistryId === selectedMinistry.id ? "جارٍ الحذف..." : "حذف الوزارة"}
-            </button>
           </div>
 
           <h4 style={{ marginTop: 14 }}>{t("branchesCount")}:</h4>
 
           <ul style={{ paddingLeft: 0, listStyle: "none" }}>
-            {selectedMinistry.branches.length > 0 ? (
+            {(selectedMinistry.branches && selectedMinistry.branches.length > 0) ? (
               selectedMinistry.branches.map((branch) => (
                 <li key={branch.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0" }}>
                   <span>{branch.name} - {branch.governorate?.name || t("undefined")}</span>
 
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                   <button
-  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setSelectedBranch(branch); }}
-  style={{ cursor: "pointer", background: "none", border: "none", color: "#0ea5e9", fontSize: "18px" }}
-  title={t("branchDetails")}
->
-  👁️
-</button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setSelectedBranch(branch); }}
+                      style={{ cursor: "pointer", background: "none", border: "none", color: "#0ea5e9", fontSize: "18px" }}
+                      title={t("branchDetails")}
+                    >
+                      👁️
+                    </button>
 
                     <ReportIcon
                       onClick={() => handleViewBranchReport(branch.id, true)}
@@ -318,7 +397,6 @@ export default function Ministries() {
                       color="#059669"
                     />
 
-                    {/* delete branch button */}
                     <button
                       onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteBranch(branch.id); }}
                       disabled={Boolean(deletingBranchId)}
@@ -345,7 +423,7 @@ export default function Ministries() {
         </Dialog>
       )}
 
-      {/* Branch details dialog (opened when clicking eye on branch list) */}
+      {/* Branch details dialog */}
       {selectedBranch && (
         <Dialog title={t("branchDetails")} onClose={() => setSelectedBranch(null)}>
           <p><strong>{t("branchNumber")}:</strong> {selectedBranch.id}</p>

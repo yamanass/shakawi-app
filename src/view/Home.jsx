@@ -5,12 +5,12 @@ import Sidebar from "../components/Sidebar";
 import "../app.css";
 import {
   fetchDashboardData,
-  fetchDashboardReport,
   fetchStatsByStatus,
   fetchStatsByMinistryAndBranch,
   fetchStatsByMonth,
   fetchStatsByUserActivity,
-  fetchCounts, // <-- added: counts endpoint
+  fetchCounts,
+  fetchActivityLog, // <-- needs to exist in ../data/dashboardData
 } from "../data/dashboardData";
 
 export default function Home() {
@@ -52,42 +52,116 @@ export default function Home() {
   // main dashboard data
   const [data, setData] = useState({ ministries: 0, branches: 0, employees: 0, metrics: {}, updatedAt: null });
   const [loading, setLoading] = useState(false);
-  const [reportLoading, setReportLoading] = useState(false);
- const [_error, setError] = useState(null);
+  const [_error, setError] = useState(null);
 
-  // new stats states
-  const [statusStats, setStatusStats] = useState([]); // [{status, total, percentage}, ...]
+  // stats
+  const [statusStats, setStatusStats] = useState([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState(null);
 
-  const [byMinistryBranch, setByMinistryBranch] = useState([]); // array of {ministry_id, ministry_branch_id, total, ministry, ministry_branch}
+  const [byMinistryBranch, setByMinistryBranch] = useState([]);
   const [byMBLoading, setByMBLoading] = useState(false);
   const [byMBError, setByMBError] = useState(null);
 
-  const [monthlyStats, setMonthlyStats] = useState([]); // [{year, month, new_count, ...}]
+  const [monthlyStats, setMonthlyStats] = useState([]);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [monthlyError, setMonthlyError] = useState(null);
 
-  // new: user activity (citizens + counts)
-  const [userActivity, setUserActivity] = useState([]); // [{ citizen_id, total, citizen: {user: {...}} }]
+  const [userActivity, setUserActivity] = useState([]);
   const [userActivityLoading, setUserActivityLoading] = useState(false);
   const [userActivityError, setUserActivityError] = useState(null);
 
-  // helper loaders
+  // activity log (audit)
+  const [activityLog, setActivityLog] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState(null);
+
+  // UI state for progressive reveal of dates
+  const [datesList, setDatesList] = useState([]); // array of dateKey strings sorted desc
+  const [groupedByDate, setGroupedByDate] = useState({}); // { dateKey: [items...] }
+  const [revealedIndex, setRevealedIndex] = useState(-1); // last index revealed (0 is newest)
+
+  // helpers
+  const parseDateKey = (raw) => {
+    if (!raw) return null;
+    // try Date parse
+    const dt = new Date(raw);
+    if (!isNaN(dt.getTime())) return dt.toISOString().slice(0, 10); // yyyy-mm-dd
+    // fallback: try to extract yyyy-mm-dd from string
+    const m = String(raw).match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) return m[1];
+    // if nothing, return raw truncated
+    return String(raw).slice(0, 10);
+  };
+
+  const formatActivityDate = (d) => {
+    if (!d) return "-";
+    try {
+      const dt = new Date(d);
+      if (isNaN(dt.getTime())) return d;
+      return dt.toLocaleString();
+    } catch {
+      return d;
+    }
+  };
+
+  // group activityLog by date and prepare datesList
+  useEffect(() => {
+    if (!Array.isArray(activityLog)) {
+      setGroupedByDate({});
+      setDatesList([]);
+      setRevealedIndex(-1);
+      return;
+    }
+
+    const map = {};
+    for (const it of activityLog) {
+      const key = parseDateKey(it.created_at) || "unknown";
+      if (!map[key]) map[key] = [];
+      map[key].push(it);
+    }
+
+    // sort items inside each date by time desc (newest first)
+    for (const k of Object.keys(map)) {
+      map[k].sort((a, b) => {
+        const da = new Date(a.created_at).getTime() || 0;
+        const db = new Date(b.created_at).getTime() || 0;
+        return db - da;
+      });
+    }
+
+    // build sorted date keys desc (newest date first)
+    const keys = Object.keys(map).sort((a, b) => {
+      // compare as ISO yyyy-mm-dd strings works
+      if (a === "unknown") return 1;
+      if (b === "unknown") return -1;
+      return b.localeCompare(a);
+    });
+
+    setGroupedByDate(map);
+    setDatesList(keys);
+
+    // set initial revealedIndex:
+    // if today's date present, reveal it; otherwise reveal index 0 (newest)
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayIdx = keys.indexOf(todayKey);
+    if (todayIdx !== -1) {
+      setRevealedIndex(todayIdx);
+    } else {
+      setRevealedIndex(keys.length > 0 ? 0 : -1);
+    }
+  }, [activityLog]);
+
+  // loader functions
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch dashboard data and counts in parallel.
       const [dashRes, countsRes] = await Promise.allSettled([fetchDashboardData(), fetchCounts()]);
-
       const dashOk = dashRes.status === "fulfilled" && dashRes.value;
       const countsOk = countsRes.status === "fulfilled" && countsRes.value;
-
       const dash = dashOk ? dashRes.value : { ministries: 0, branches: 0, employees: 0, metrics: {}, updatedAt: new Date().toISOString(), raw: null };
       const counts = countsOk ? countsRes.value : null;
-
-      // Use counts (getCounts) when available; otherwise fall back to dashboardData
       setData({
         ministries: counts?.ministries_count ?? dash?.ministries ?? 0,
         branches: counts?.branches_count ?? dash?.branches ?? 0,
@@ -104,19 +178,6 @@ export default function Home() {
     }
   };
 
-  const loadReport = async () => {
-    setReportLoading(true);
-    try {
-      await fetchDashboardReport(true);
-    } catch (err) {
-      console.error("View report failed:", err);
-      alert("فشل تحميل التقرير: " + (err?.message || "خطأ غير معروف"));
-    } finally {
-      setReportLoading(false);
-    }
-  };
-
-  // fetch the statistics endpoints (including user activity)
   const loadAllStats = async () => {
     setStatsLoading(true);
     setByMBLoading(true);
@@ -126,64 +187,52 @@ export default function Home() {
     setByMBError(null);
     setMonthlyError(null);
     setUserActivityError(null);
+    setActivityLoading(true);
+    setActivityError(null);
 
     try {
       const results = await Promise.allSettled([
         fetchStatsByStatus(),
         fetchStatsByMinistryAndBranch(),
         fetchStatsByMonth(),
-        fetchStatsByUserActivity(), // <-- call
+        fetchStatsByUserActivity(),
+        fetchActivityLog(),
       ]);
 
-      // results order matches the array above
-      const [sStat, sByMB, sMonth, sUserAct] = results;
+      const [sStat, sByMB, sMonth, sUserAct, sActivity] = results;
 
-      // status
-      if (sStat.status === "fulfilled") {
-        setStatusStats(Array.isArray(sStat.value) ? sStat.value : []);
-      } else {
-        console.error("[loadAllStats] fetchStatsByStatus failed:", sStat.reason);
-        setStatsError("فشل جلب إحصاءات الحالة");
-        setStatusStats([]);
-      }
+      if (sStat.status === "fulfilled") setStatusStats(Array.isArray(sStat.value) ? sStat.value : []);
+      else { console.error(sStat.reason); setStatusStats([]); setStatsError("فشل جلب إحصاءات الحالة"); }
 
-      // by ministry & branch
-      if (sByMB.status === "fulfilled") {
-        setByMinistryBranch(Array.isArray(sByMB.value) ? sByMB.value : []);
-      } else {
-        console.error("[loadAllStats] fetchStatsByMinistryAndBranch failed:", sByMB.reason);
-        setByMBError("فشل جلب إحصاءات الوزارات/الفروع");
-        setByMinistryBranch([]);
-      }
+      if (sByMB.status === "fulfilled") setByMinistryBranch(Array.isArray(sByMB.value) ? sByMB.value : []);
+      else { console.error(sByMB.reason); setByMinistryBranch([]); setByMBError("فشل جلب إحصاءات الوزارات/الفروع"); }
 
-      // monthly
-      if (sMonth.status === "fulfilled") {
-        setMonthlyStats(Array.isArray(sMonth.value) ? sMonth.value : []);
-      } else {
-        console.error("[loadAllStats] fetchStatsByMonth failed:", sMonth.reason);
-        setMonthlyError("فشل جلب الإحصاءات الشهرية");
-        setMonthlyStats([]);
-      }
+      if (sMonth.status === "fulfilled") setMonthlyStats(Array.isArray(sMonth.value) ? sMonth.value : []);
+      else { console.error(sMonth.reason); setMonthlyStats([]); setMonthlyError("فشل جلب الإحصاءات الشهرية"); }
 
-      // user activity
-      if (sUserAct.status === "fulfilled") {
-        setUserActivity(Array.isArray(sUserAct.value) ? sUserAct.value : []);
+      if (sUserAct.status === "fulfilled") setUserActivity(Array.isArray(sUserAct.value) ? sUserAct.value : []);
+      else { console.error(sUserAct.reason); setUserActivity([]); setUserActivityError("فشل جلب إحصاءات نشاط المواطنين"); }
+
+      // activity log
+      if (sActivity.status === "fulfilled") {
+        const body = sActivity.value ?? [];
+        const list = Array.isArray(body) ? body : Array.isArray(body?.data) ? body.data : [];
+        setActivityLog(list);
       } else {
-        console.error("[loadAllStats] fetchStatsByUserActivity failed:", sUserAct.reason);
-        setUserActivityError("فشل جلب إحصاءات نشاط المواطنين");
-        setUserActivity([]);
+        console.error(sActivity.reason);
+        setActivityLog([]);
+        setActivityError("فشل جلب سجل العمليات");
       }
     } catch (err) {
       console.error("[loadAllStats] unexpected error:", err);
-      setStatsError("فشل جلب الإحصاءات");
-      setByMBError("فشل جلب الإحصاءات");
-      setMonthlyError("فشل جلب الإحصاءات");
-      setUserActivityError("فشل جلب إحصاءات المواطنين");
+      setActivityLog([]);
+      setActivityError("فشل جلب سجل العمليات");
     } finally {
       setStatsLoading(false);
       setByMBLoading(false);
       setMonthlyLoading(false);
       setUserActivityLoading(false);
+      setActivityLoading(false);
     }
   };
 
@@ -191,10 +240,6 @@ export default function Home() {
     load();
     loadAllStats();
   }, []);
-
-  const onViewReport = async () => {
-    await loadReport();
-  };
 
   const refreshAll = async () => {
     setLoading(true);
@@ -205,7 +250,7 @@ export default function Home() {
     }
   };
 
-  // small helpers to render status cards
+  // helpers for status / reporter (kept unchanged)
   const statusFriendly = (s) => {
     if (!s) return s;
     const key = String(s).toLowerCase();
@@ -222,13 +267,19 @@ export default function Home() {
   };
 
   const reporterName = (item) => {
-    // item.citizen.user first_name/last_name or fallback national_id
     const user = item?.citizen?.user;
     if (user) return `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.email || user.phone || `ID:${item.citizen_id}`;
-    // fallback to citizen
     const c = item?.citizen;
     if (c) return c.national_id || `ID:${item.citizen_id}`;
     return `ID:${item.citizen_id}`;
+  };
+
+  // reveal next date (progressive)
+  const revealNext = (indexToReveal) => {
+    // indexToReveal is the index of date in datesList we want to reveal.
+    if (typeof indexToReveal !== "number") return;
+    if (indexToReveal <= revealedIndex) return;
+    setRevealedIndex(indexToReveal);
   };
 
   return (
@@ -243,17 +294,9 @@ export default function Home() {
             <button
               onClick={refreshAll}
               style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #2b7ed3", background: loading ? "#dbeefc" : "#e8f4ff" }}
-              disabled={loading || statsLoading || byMBLoading || monthlyLoading || userActivityLoading}
+              disabled={loading || statsLoading || byMBLoading || monthlyLoading || userActivityLoading || activityLoading}
             >
               {loading || statsLoading ? "جاري التحديث..." : t("refresh") || "تحديث"}
-            </button>
-
-            <button
-              onClick={onViewReport}
-              style={{ padding: "8px 12px", borderRadius: 8, background: "#e6ffef", border: "1px solid #12a05b" }}
-              disabled={reportLoading}
-            >
-              {reportLoading ? "جاري التحميل..." : "عرض التقرير"}
             </button>
 
             <div style={{ color: "#64748b", fontSize: 14 }}>
@@ -280,10 +323,90 @@ export default function Home() {
           </div>
         </div>
 
-        {/* System summary and mini metrics */}
+        {/* Activity Log (grouped by date with progressive reveal) */}
+        <div style={{ background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 6px 20px rgba(0,0,0,0.04)", marginTop: 8 }}>
+          <h3 style={{ marginTop: 0 }}>سجل العمليات</h3>
 
-        {/* NEW: status cards + by-ministry table */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 24, alignItems: "start" }}>
+          {activityLoading ? (
+            <div>جاري تحميل سجل العمليات...</div>
+          ) : activityError ? (
+            <div style={{ color: "red" }}>{activityError}</div>
+          ) : datesList.length === 0 ? (
+            <div style={{ color: "#6b7280" }}>لا توجد عمليات حديثة</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+              {datesList.map((dateKey, idx) => {
+                const items = groupedByDate[dateKey] || [];
+                const isRevealed = idx <= revealedIndex;
+                const displayLabel = (dateKey === new Date().toISOString().slice(0,10)) ? "اليوم" : (new Date(dateKey).toLocaleDateString() || dateKey);
+
+                // if not revealed but it's exactly the next to reveal, render a "عرض المزيد" CTA for this date (without items)
+                const isNextToReveal = idx === revealedIndex + 1;
+
+                return (
+                  <div key={dateKey} style={{ borderRadius: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: "#0f172a" }}>{displayLabel}</div>
+                      {!isRevealed && !isNextToReveal ? (
+                        // collapsed and not the immediate next — show small summary text
+                        <div style={{ color: "#6b7280", fontSize: 13 }}>{items.length} عملية</div>
+                      ) : null}
+                    </div>
+
+                    {isRevealed ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {items.map((it) => {
+                          const subject = it.subject ?? {};
+                          const performed = it.performed_by ?? {};
+                          const performerName = typeof performed === "string" ? performed : (performed.name || performed.username || (performed?.role ? `${performed.role}` : "غير معروف"));
+                          const subjRef = subject.reference || subject.id || "-";
+                          return (
+                            <div key={it.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12, borderRadius: 10, background: "#f8fafc", border: "1px solid #eef2f7" }}>
+                              <div style={{ maxWidth: "72%" }}>
+                                <div style={{ fontWeight: 700, color: "#0f172a" }}>{it.action} · {subject.type || "موضوع"}</div>
+                                <div style={{ fontSize: 13, color: "#475569", marginTop: 4 }}>مرجع: {subjRef}</div>
+                              </div>
+
+                              <div style={{ textAlign: "right" }}>
+                                <div style={{ fontWeight: 700 }}>{performerName}</div>
+                                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>{formatActivityDate(it.created_at)}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : isNextToReveal ? (
+                      // show single CTA card to reveal this date's items
+                      <div style={{ display: "flex", justifyContent: "center" }}>
+                        <button
+                          onClick={() => revealNext(idx)}
+                          className="submit-btn"
+                          style={{ padding: "8px 16px", borderRadius: 10 }}
+                        >
+                          عرض المزيد ({items.length} عملية)
+                        </button>
+                      </div>
+                    ) : (
+                      // collapsed, and not immediate next: show small CTA to reveal up to this date (user can click older CTA step-by-step)
+                      <div style={{ display: "flex", justifyContent: "center" }}>
+                        <button
+                          onClick={() => revealNext(idx)}
+                          className="submit-btn"
+                          style={{ padding: "6px 12px", borderRadius: 8, background: "#f3f4f6", color: "#0f172a" }}
+                        >
+                          عرض المزيد ({items.length})
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* rest of dashboard (status, by-ministry, user activity, monthly stats) */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 24, alignItems: "start", marginTop: 18 }}>
           <div style={{ background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 6px 20px rgba(0,0,0,0.04)" }}>
             <h3 style={{ marginTop: 0 }}>حالة الشكاوي</h3>
             {statsLoading ? (
@@ -311,7 +434,6 @@ export default function Home() {
 
           <div style={{ background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 6px 20px rgba(0,0,0,0.04)" }}>
             <h3 style={{ marginTop: 0 }}>عدد الشكاوى بحسب الوزارة/الفرع</h3>
-
             {byMBLoading ? (
               <div>جاري تحميل...</div>
             ) : byMBError ? (
@@ -347,10 +469,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* NEW SECTION: User activity (citizens who submit complaints) */}
-        <div style={{ background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 6px 20px rgba(0,0,0,0.04)" }}>
+        {/* user activity card */}
+        <div style={{ background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 6px 20px rgba(0,0,0,0.04)", marginTop: 18 }}>
           <h3 style={{ marginTop: 0 }}>المواطنون الأكثر نشاطاً (مقدمو الشكاوى)</h3>
-
           {userActivityLoading ? (
             <div>جاري تحميل بيانات المواطنين...</div>
           ) : userActivityError ? (
@@ -380,9 +501,8 @@ export default function Home() {
         </div>
 
         {/* monthly stats */}
-        <div style={{ background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 6px 20px rgba(0,0,0,0.04)" }}>
+        <div style={{ background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 6px 20px rgba(0,0,0,0.04)", marginTop: 18 }}>
           <h3 style={{ marginTop: 0 }}>إحصاءات بحسب الشهر</h3>
-
           {monthlyLoading ? (
             <div>جاري تحميل...</div>
           ) : monthlyError ? (
@@ -420,16 +540,14 @@ export default function Home() {
             </div>
           )}
         </div>
+
       </main>
 
-      <style>
-        {`
-          .hover-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-          }
-        `}
-      </style>
+      <style>{`
+        .hover-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        .submit-btn { padding: 8px 12px; background: #0ea5e9; color: #fff; border-radius: 8px; border: none; cursor: pointer; }
+        .submit-btn:hover { opacity: 0.95; }
+      `}</style>
     </div>
   );
 }

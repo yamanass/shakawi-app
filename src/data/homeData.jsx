@@ -1,7 +1,7 @@
 
 // src/data/homeData.js
 import crud from '../services/crudInstance.js';
-import API from '../api/api.js';
+import API from "../services/api.js";
 
 export async function getMinistries() {
   try {

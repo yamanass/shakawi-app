@@ -1,10 +1,10 @@
 // src/api/api.js
-const BASE = import.meta.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000';
+const BASE = import.meta.env.REACT_APP_API_BASE || 'http://10.194.133.219:8000';
 
 const API = {
    BASE: `${BASE}/api`,
   MINISTRY: {
-    READ: `/ministry/read`,
+    READ: `/api/ministry/readAll`,
     STORE: `${BASE}/api/ministry/store`, // 👈 الرابط الصحيح للإضافة
   },
    BRANCH: {

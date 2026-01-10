@@ -61,54 +61,10 @@ export async function fetchDashboardData() {
  * - If openInNewTab === true, will open the generated URL in a new browser tab.
  * - Returns { blob, url, contentType } on success.
  */
-export async function fetchDashboardReport(openInNewTab = true) {
-  try {
-    const token = localStorage.getItem("access_token");
-    const headers = {
-      Accept: "application/pdf, application/octet-stream, */*",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
 
-    // request blob directly
-    const res = await crud.client.get("/getLog", {
-      responseType: "blob",
-      headers,
-      validateStatus: () => true,
-    });
-
-    const contentType = (res.headers && (res.headers["content-type"] || res.headers["Content-Type"])) || "";
-    const blob = new Blob([res.data], { type: contentType || "application/pdf" });
-
-    // If the server returned JSON / text error as blob, attempt to parse and surface message
-    if (contentType.includes("application/json") || contentType.includes("text/plain")) {
-       {
-        const text = await blob.text();
-        let parsed = null;
-        try { parsed = JSON.parse(text); } catch { /* ignore */ }
-        const msg = parsed?.message || text || "Server returned non-PDF response";
-        throw new Error(msg);
-      } 
-    }
-
-    // success: open or return
-    const url = URL.createObjectURL(blob);
-    if (openInNewTab && typeof window !== "undefined") {
-      window.open(url, "_blank", "noopener");
-      // revoke after a while to avoid leaking object URLs; tab still works
-      setTimeout(() => {
-        try { URL.revokeObjectURL(url); } catch { /* ignore */ }
-      }, 60 * 1000);
-    }
-
-    return { blob, url, contentType };
-  } catch (err) {
-    console.error("[dashboardData] fetchDashboardReport failed:", err);
-    throw err;
-  }
-}
 export async function fetchStatsByStatus() {
   try {
-    const res = await crud.get("/statistics/statsByStatus");
+    const res = await crud.get("/v1/statistics/statsByStatus");
     const body = res?.data ?? res?.raw?.data ?? res ?? [];
     // ensure array
     return Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
@@ -124,7 +80,7 @@ export async function fetchStatsByStatus() {
  */
 export async function fetchStatsByMinistryAndBranch() {
   try {
-    const res = await crud.get("/statistics/statsByMinistryAndBranch");
+    const res = await crud.get("/v1/statistics/statsByMinistryAndBranch");
     const body = res?.data ?? res?.raw?.data ?? res ?? [];
     return Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
   } catch (err) {
@@ -139,7 +95,7 @@ export async function fetchStatsByMinistryAndBranch() {
  */
 export async function fetchStatsByMonth() {
   try {
-    const res = await crud.get("/statistics/statsByMonth");
+    const res = await crud.get("/v1/statistics/statsByMonth");
     const body = res?.data ?? res?.raw?.data ?? res ?? [];
     return Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
   } catch (err) {
@@ -149,7 +105,7 @@ export async function fetchStatsByMonth() {
 }
 export async function fetchStatsByUserActivity() {
   try {
-    const res = await crud.get("/statistics/statsByUserActivity");
+    const res = await crud.get("/v1/statistics/statsByUserActivity");
     const body = res?.data ?? res?.raw?.data ?? res ?? null;
     // backend may return array directly or { data: [...] }
     const list = body?.data ?? (Array.isArray(body) ? body : []);
@@ -161,7 +117,7 @@ export async function fetchStatsByUserActivity() {
 }
 export async function fetchCounts() {
   try {
-    const res = await crud.get("/statistics/getCounts");
+    const res = await crud.get("/v1/statistics/getCounts");
     const body = res?.data ?? res?.raw?.data ?? res ?? null;
     const payload = body?.data ?? body ?? {};
 
@@ -178,5 +134,18 @@ export async function fetchCounts() {
   } catch (err) {
     console.error("[fetchCounts] error:", err);
     return { employees_count: 0, ministries_count: 0, branches_count: 0, raw: null };
+  }
+}
+export async function fetchActivityLog() {
+  try {
+    // مسار النسخة التي أعطيتني إياها هو /v1/statistics/getActivity
+    const res = await crud.get("/v1/statistics/getActivity");
+    // backend قد يرجع { status, message, data: [...] } أو يرجع المصفوفة مباشرة
+    const body = res?.data ?? res ?? null;
+    const list = body?.data ?? (Array.isArray(body) ? body : []);
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("[fetchActivityLog] error:", err);
+    return [];
   }
 }

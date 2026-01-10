@@ -6,7 +6,6 @@
   padding: 12px 0;
 }
 
-
 /* Card */
 .ministry-card {
   background: rgba(255, 255, 255, 0.9); /* زيادة السطوع قليلاً */
@@ -19,14 +18,13 @@
   flex-direction: column;
   gap: 16px;
   transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
 }
-
 
 .ministry-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 18px 36px rgba(0,0,0,0.15);
 }
-
 
 .ministry-card h3 {
   font-size: 24px;
@@ -46,7 +44,6 @@
   font-size: 15px;
 }
 
-
 /* Description */
 .description {
   font-size: 15px;
@@ -57,7 +54,6 @@
   min-height: 60px;
   padding: 0 6px;
 }
-
 
 /* Branches Count Badge */
 .branches-count {
@@ -71,6 +67,7 @@
   margin-top: auto;
 }
 
+/* Buttons & Form styles (unchanged) */
 .buttons-container {
   display: flex;
   gap: 15px;
@@ -161,4 +158,45 @@
 
 .cancel-btn:hover {
   background-color: #e5e7eb;
+}
+
+/* ===========================
+   Trashed modifier (deleted)
+   نفس التخطيط، فقط تغيير الألوان
+   =========================== */
+.ministry-card.trashed {
+  background: linear-gradient(180deg, #fff5f5 0%, #fff1f1 100%); /* فاتح محمر */
+  border: 1px solid rgba(252, 165, 165, 0.9); /* حافة حمراء */
+  box-shadow: 0 8px 24px rgba(124, 58, 42, 0.06);
+  color: #6b0f0f;
+}
+
+/* عنوان داخل الكارت المحذوف */
+.ministry-card.trashed h3 {
+  color: #7f1d1d;
+}
+
+/* badge الاختصار للمحذوف — أحمر شفاف */
+.ministry-card.trashed .abbreviation {
+  background: #ef444420;
+  color: #991b1b;
+}
+
+/* badge عدد الفروع في المحذوف */
+.ministry-card.trashed .branches-count {
+  background: #fee2e230;
+  color: #b91c1c;
+  border-radius: 12px;
+}
+
+/* زر الحذف باللون الأحمر عند التفاعل (داخل الكارت) */
+.ministry-card.trashed button[title="حذف نهائي"],
+.ministry-card.trashed button[title="حذف الوزارة"] {
+  color: #7f1d1d;
+}
+
+/* hover style keeps same lift but slightly different shadow */
+.ministry-card.trashed:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(124, 58, 42, 0.12);
 }
