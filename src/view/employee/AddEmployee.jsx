@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Crud from "../../services/Crud.js";
 
 const crud = new Crud({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: "http://10.194.133.219:8000/api",
   storageService: {
     getToken: () => localStorage.getItem("access_token"),
     getLang: () => localStorage.getItem("lang") || "ar",
@@ -30,7 +30,7 @@ export default function AddEmployee({ onAdded = () => {}, onCancel = () => {} })
     let mounted = true;
     (async () => {
       try {
-        const res = await crud.get("/ministry/read");
+        const res = await crud.get("/v1/ministry/read");
         const payload = res?.data ?? res?.raw?.data ?? null;
         const items = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
         if (mounted) setMinistries(items);
@@ -50,7 +50,7 @@ export default function AddEmployee({ onAdded = () => {}, onCancel = () => {} })
         return;
       }
       try {
-        const res = await crud.get(`/ministry/readOne/${ministry_id}`);
+        const res = await crud.get(`/v1/ministry/readOne/${ministry_id}`);
         const payload = res?.data ?? res?.raw?.data ?? null;
         const ministryObj = payload?.data ?? payload ?? null;
         const items = Array.isArray(ministryObj?.branches) ? ministryObj.branches : [];
@@ -87,7 +87,7 @@ export default function AddEmployee({ onAdded = () => {}, onCancel = () => {} })
     };
 
     try {
-      const res = await crud.post("/employee/store", payload);
+      const res = await crud.post("/v1/employee/store", payload);
       const status = res?.status ?? res?.raw?.status ?? null;
       const body = res?.data ?? res?.raw?.data ?? null;
 

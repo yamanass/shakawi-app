@@ -4,12 +4,12 @@ const BASE = import.meta.env.REACT_APP_API_BASE || 'http://10.194.133.219:8000';
 const API = {
    BASE: `${BASE}/api`,
   MINISTRY: {
-    READ: `/api/ministry/readAll`,
-    STORE: `${BASE}/api/ministry/store`, // 👈 الرابط الصحيح للإضافة
+    READ: `/api/v1/ministry/readAll`,
+    STORE: `${BASE}/api/v1/ministry/store`, // 👈 الرابط الصحيح للإضافة
   },
    BRANCH: {
-      STORE: `/ministry/branch/store`,
-      READ_ONE: `/ministry/branch/readOne`, // 👈 هنا رابط API لتفاصيل الفرع
+      STORE: `/api/v1/ministry/branch/store`,
+      READ_ONE: `/api/v1/ministry/branch/readOne`, // 👈 هنا رابط API لتفاصيل الفرع
     },
   GOVERNORATE: {
     READ: "/get-governorates",   // 👈 هذا هو رابطك الحقيقي

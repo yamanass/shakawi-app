@@ -6,7 +6,7 @@ import AddEmployee from "./AddEmployee";
 import Dialog from "../../components/common/Dialog.jsx";
 
 const crud = new Crud({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: "http://10.194.133.219:8000/api",
   storageService: {
     getToken: () => localStorage.getItem("access_token"),
     getLang: () => localStorage.getItem("lang") || "ar",
@@ -40,7 +40,7 @@ export default function Employees() {
   // Fetch ministries / branches
   const fetchMinistries = useCallback(async () => {
     try {
-      const res = await crud.get("/ministry/read");
+      const res = await crud.get("/v1/ministry/read");
       const payload = res?.data ?? res?.raw?.data ?? null;
       let items = [];
       if (Array.isArray(payload)) items = payload;
@@ -55,7 +55,7 @@ export default function Employees() {
   const fetchBranchesForMinistry = useCallback(async (id) => {
     if (!id) return setBranches([]);
     try {
-      const res = await crud.get(`/ministry/readOne/${id}`);
+      const res = await crud.get(`/v1/ministry/readOne/${id}`);
       const payload = res?.data ?? res?.raw?.data ?? null;
       const ministryObj = payload?.data ?? payload;
       setBranches(Array.isArray(ministryObj?.branches) ? ministryObj.branches : []);
@@ -157,9 +157,9 @@ const normalizeEmployeeItem = (item) => {
       setError(null);
       try {
         let res;
-        if (opts.branchId) res = await crud.get(`/employee/getByBranch/${opts.branchId}`);
-        else if (opts.ministryId) res = await crud.get(`/employee/getByMinistry/${opts.ministryId}`);
-        else res = await crud.get("/employee/read");
+        if (opts.branchId) res = await crud.get(`/v1/employee/getByBranch/${opts.branchId}`);
+        else if (opts.ministryId) res = await crud.get(`/v1/employee/getByMinistry/${opts.ministryId}`);
+        else res = await crud.get("/v1/employee/read");
 
         const payload = res?.data ?? res?.raw?.data ?? res ?? null;
         let list = [];
@@ -193,7 +193,7 @@ const normalizeEmployeeItem = (item) => {
       if (!id) return null;
       setLoading(true);
       try {
-        const res = await crud.get(`/employee/readOne/${id}`);
+        const res = await crud.get(`/v1/employee/readOne/${id}`);
         const payload = res?.data ?? res?.raw?.data ?? res ?? null;
         const item = payload?.data ?? payload ?? null;
         if (!item) {

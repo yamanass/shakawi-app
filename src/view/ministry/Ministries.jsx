@@ -58,7 +58,7 @@ export default function Ministries() {
       // try endpoint that returns { data: { active: [], trashed: [] } }
       let res = null;
       try {
-        res = await crud.get("/ministry/readAll");
+        res = await crud.get("v1/ministry/readAll");
       } catch  {
         // fallback to configured API constant if readAll not available
      
@@ -111,7 +111,7 @@ export default function Ministries() {
     if (!window.confirm("تأكيد: هل تريد حذف هذه الوزارة نهائياً؟ هذه العملية لا يمكن التراجع عنها.")) return;
     setDeletingMinistryId(ministryId);
     try {
-      const url = buildApiUrl(`/ministry/delete/${ministryId}`);
+      const url = buildApiUrl(`/v1/ministry/delete/${ministryId}`);
       await crud.client.delete(url, { headers: { ..._getAuthHeader() } });
       alert("تم حذف الوزارة بنجاح.");
       await fetchMinistries();
@@ -131,7 +131,7 @@ export default function Ministries() {
     if (!window.confirm("تأكيد: هل تريد حذف هذا الفرع نهائياً؟ هذه العملية لا يمكن التراجع عنها.")) return;
     setDeletingBranchId(branchId);
     try {
-      const url = buildApiUrl(`/ministry/branch/delete/${branchId}`);
+      const url = buildApiUrl(`/v1/ministry/branch/delete/${branchId}`);
       await crud.client.delete(url, { headers: { ..._getAuthHeader() } });
       alert("تم حذف الفرع بنجاح.");
       await fetchMinistries();
@@ -203,14 +203,14 @@ export default function Ministries() {
 
   const handleViewMinistryReport = async (ministryId, useDialog = true) => {
     if (!ministryId) return;
-    const path = `/complaint/downloadMinistryReport/${ministryId}`;
+    const path = `/v1/complaint/downloadMinistryReport/${ministryId}`;
     const url = buildReportUrl(path);
     await _fetchAndShowReport(url, `تقرير الوزارة ${ministryId}`, useDialog);
   };
 
   const handleViewBranchReport = async (branchId, useDialog = true) => {
     if (!branchId) return;
-    const path = `/complaint/downloadBranchReport/${branchId}`;
+    const path = `/v1/complaint/downloadBranchReport/${branchId}`;
     const url = buildReportUrl(path);
     await _fetchAndShowReport(url, `تقرير الفرع ${branchId}`, useDialog);
   };
